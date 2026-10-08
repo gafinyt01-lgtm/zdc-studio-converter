@@ -1,49 +1,90 @@
 import crypto from "node:crypto";
 
-export default async function handler(req, res) {
-  const cookies = Object.fromEntries(
-    (req.headers.cookie || "")
-      .split(";")
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .map((item) => {
-        const index = item.indexOf("=");
-        return [
-          item.slice(0, index),
-          decodeURIComponent(item.slice(index + 1))
-        ];
-      })
-  );
+function parseCookies(req) {
+  const result = {};
 
+  for (const item of (req.headers.cookie || "").split(";")) {
+    const index = item.indexOf("=");
+
+    if (index < 0) continue;
+
+    const key = item.slice(0, index).trim();
+    const value = item.slice(index + 1).trim();
+
+    try {
+      result[key] = decodeURIComponent(value);
+    } catch {
+      result[key] = "";
+    }
+  }
+
+  return result;
+}
+
+function createSession(user) {
+  const payload = Buffer.from(
+    JSON.stringify({
+      id: user.id,
+      username: user.username,
+      exp: Date.now() + 7 * 24 * 60 * 60 * 1000
+    })
+  ).toString("base64url");
+
+  const signature = crypto
+    .createHmac("sha256", process.env.SESSION_SECRET)
+    .update(payload)
+    .digest("base64url");
+
+  return `${payload}.${signature}`;
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+    return res.status(405).send("Method not allowed.");
+  }
+
+  const cookies = parseCookies(req);
   const { code, state, error } = req.query;
   const savedState = cookies.discord_oauth_state;
 
-  res.setHeader("Set-Cookie", [
-    "discord_oauth_state=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0"
-  ]);
+  const clearState =
+    "discord_oauth_state=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0";
 
-  if (error || !code || !state || !savedState ||
-      !crypto.timingSafeEqual(
-        Buffer.from(String(state)),
-        Buffer.from(String(savedState))
-      )) {
-    return res.status(400).send("Otorisasi Discord gagal atau tidak valid.");
+  if (
+    error ||
+    typeof code !== "string" ||
+    typeof state !== "string" ||
+    typeof savedState !== "string" ||
+    !state ||
+    !savedState ||
+    state.length !== savedState.length ||
+    !crypto.timingSafeEqual(
+      Buffer.from(state),
+      Buffer.from(savedState)
+    )
+  ) {
+    res.setHeader("Set-Cookie", clearState);
+    return res.status(400).send("Otorisasi Discord tidak valid.");
   }
 
   const {
     DISCORD_CLIENT_ID,
     DISCORD_CLIENT_SECRET,
     DISCORD_REDIRECT_URI,
-    DISCORD_GUILD_ID
+    DISCORD_GUILD_ID,
+    SESSION_SECRET
   } = process.env;
 
   if (
     !DISCORD_CLIENT_ID ||
     !DISCORD_CLIENT_SECRET ||
     !DISCORD_REDIRECT_URI ||
-    !DISCORD_GUILD_ID
+    !DISCORD_GUILD_ID ||
+    !SESSION_SECRET
   ) {
-    return res.status(500).send("Konfigurasi Discord belum lengkap.");
+    res.setHeader("Set-Cookie", clearState);
+    return res.status(500).send("Konfigurasi backend belum lengkap.");
   }
 
   try {
@@ -58,7 +99,7 @@ export default async function handler(req, res) {
           client_id: DISCORD_CLIENT_ID,
           client_secret: DISCORD_CLIENT_SECRET,
           grant_type: "authorization_code",
-          code: String(code),
+          code,
           redirect_uri: DISCORD_REDIRECT_URI
         })
       }
@@ -67,7 +108,8 @@ export default async function handler(req, res) {
     const tokenData = await tokenResponse.json();
 
     if (!tokenResponse.ok || !tokenData.access_token) {
-      return res.status(401).send("Gagal mengautentikasi akun Discord.");
+      res.setHeader("Set-Cookie", clearState);
+      return res.status(401).send("Login Discord gagal.");
     }
 
     const headers = {
@@ -80,32 +122,34 @@ export default async function handler(req, res) {
     ]);
 
     if (!userResponse.ok || !guildsResponse.ok) {
+      res.setHeader("Set-Cookie", clearState);
       return res.status(401).send("Gagal memeriksa akun Discord.");
     }
 
     const user = await userResponse.json();
     const guilds = await guildsResponse.json();
 
-    const isMember = guilds.some(
-      (guild) => guild.id === DISCORD_GUILD_ID
-    );
-
-    if (!isMember) {
+    if (
+      !Array.isArray(guilds) ||
+      !guilds.some(guild => guild.id === DISCORD_GUILD_ID)
+    ) {
+      res.setHeader("Set-Cookie", clearState);
       return res.status(403).send(
-        "Kamu harus bergabung dengan server ZDC Community terlebih dahulu."
+        "Gabung dengan ZDC Community terlebih dahulu."
       );
     }
 
+    const session = createSession(user);
+
     res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({
-      status: "success",
-      message: "Login Discord berhasil dan keanggotaan ZDC Community terverifikasi.",
-      user: {
-        id: user.id,
-        username: user.username
-      }
-    });
+    res.setHeader("Set-Cookie", [
+      clearState,
+      `zdc_session=${session}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`
+    ]);
+
+    return res.redirect(302, "/?login=success");
   } catch {
-    return res.status(500).send("Terjadi kesalahan saat menghubungkan Discord.");
+    res.setHeader("Set-Cookie", clearState);
+    return res.status(500).send("Terjadi kesalahan pada proses login.");
   }
 }

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZDC Audio Engine Test</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: #0b0812;
+      color: #f5f0ff;
+      font-family: Arial, sans-serif;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 460px;
+      padding: 26px;
+      background: #171020;
+      border: 1px solid #59377c;
+      border-radius: 18px;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #c9a0ff;
+    }
+
+    p {
+      color: #c5bacf;
+      line-height: 1.6;
+    }
+
+    input,
+    button,
+    a {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    input {
+      border: 1px solid #59446d;
+      color: white;
+      background: #100b18;
+    }
+
+    button {
+      border: 0;
+      background: #8b45d6;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    a {
+      display: none;
+      background: #292039;
+      color: #e0c7ff;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    #status {
+      overflow-wrap: anywhere;
+      font-size: 14px;
+    }
+
+    .warning {
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <h1>ZDC Audio Engine</h1>
+
+    <p>
+      Tes konversi audio sebelum dipasang ke dashboard utama.
+    </p>
+
+    <p>
+      Volume: -8 dB<br>
+      Kecepatan: 2,3×<br>
+      Format hasil: MP3, 192 kbps
+    </p>
+
+    <input
+      id="audioFile"
+      type="file"
+      accept=".mp3,.wav,.ogg,.flac,.m4a,.aac,.webm"
+    >
+
+    <button id="convertButton" disabled>
+      Mulai Konversi
+    </button>
+
+    <p id="status" role="status" aria-live="polite">
+      Pilih berkas audio maksimal 5 MB.
+    </p>
+
+    <a id="downloadLink" download="zdc-output.mp3">
+      Unduh Hasil MP3
+    </a>
+
+    <p class="warning">
+      Tes ini hanya memproses audio di browser.
+      Belum mengunggah audio ke Roblox.
+    </p>
+  </main>
+
+  <script type="module">
+    import { convertAudio } from "./audio-processor.js";
+
+    const fileInput = document.getElementById("audioFile");
+    const convertButton = document.getElementById("convertButton");
+    const status = document.getElementById("status");
+    const downloadLink = document.getElementById("downloadLink");
+
+    let currentFile = null;
+    let downloadUrl = null;
+
+    fileInput.addEventListener("change", () => {
+      currentFile = fileInput.files?.[0] || null;
+
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+        downloadUrl = null;
+      }
+
+      downloadLink.style.display = "none";
+
+      if (!currentFile) {
+        convertButton.disabled = true;
+        status.textContent = "Pilih berkas audio terlebih dahulu.";
+        return;
+      }
+
+      if (currentFile.size > 5 * 1024 * 1024) {
+        convertButton.disabled = true;
+        status.textContent = "Berkas terlalu besar. Maksimal 5 MB.";
+        return;
+      }
+
+      convertButton.disabled = false;
+      status.textContent =
+        `Berkas dipilih: ${currentFile.name} ` +
+        `(${(currentFile.size / 1024 / 1024).toFixed(2)} MB).`;
+    });
+
+    convertButton.addEventListener("click", async () => {
+      if (!currentFile) return;
+
+      convertButton.disabled = true;
+      fileInput.disabled = true;
+      downloadLink.style.display = "none";
+
+      try {
+        status.textContent = "Memuat mesin konversi...";
+
+        const result = await convertAudio(currentFile, {
+          onProgress(percent) {
+            status.textContent =
+              `Sedang memproses audio: ${percent}%`;
+          }
+        });
+
+        downloadUrl = URL.createObjectURL(result.blob);
+
+        downloadLink.href = downloadUrl;
+        downloadLink.download = result.filename;
+        downloadLink.style.display = "block";
+
+        status.textContent =
+          `Berhasil! Ukuran MP3: ` +
+          `${(result.size / 1024 / 1024).toFixed(2)} MB.`;
+      } catch (error) {
+        console.error("ZDC Audio Engine:", error);
+
+        status.textContent =
+          "Konversi gagal: " +
+          (error?.message || "Terjadi kesalahan.") +
+          " Coba lagi atau periksa konsol browser.";
+      } finally {
+        convertButton.disabled = false;
+        fileInput.disabled = false;
+      }
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+      }
+    });
+  </script>
+</body>
+</html>

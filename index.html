@@ -550,7 +550,7 @@
               <input
                 id="audioFile"
                 type="file"
-                accept=".mp3,.wav,.ogg,.flac,audio/mpeg,audio/wav,audio/ogg,audio/flac"
+                accept=".mp3,.wav,.ogg,.flac,.m4a,.aac,.webm"
                 hidden
               >
 
@@ -558,7 +558,7 @@
                 <div class="upload-icon">📁</div>
                 <strong>Pilih file audio</strong>
                 <p class="muted" style="margin:9px 0 0">
-                  MP3, WAV, OGG, atau FLAC<br>
+                  MP3, WAV, OGG, FLAC, M4A, AAC, atau WEBM<br>
                   Ukuran maksimal 5 MB
                 </p>
                 <div id="fileName" class="file-name">
@@ -578,9 +578,8 @@
                 placeholder="https://www.youtube.com/...">
 
               <div class="info-box">
-                Masukan tautan ini belum aktif. Pengambilan audio dari
-                tautan hanya dapat diaktifkan jika metode pemrosesannya
-                mematuhi ketentuan layanan dan hak cipta.
+                Fitur tautan YouTube belum aktif. Gunakan file audio
+                yang kamu miliki atau yang diizinkan untuk digunakan.
               </div>
             </div>
 
@@ -606,8 +605,8 @@
               placeholder="Masukkan ID Roblox">
 
             <div class="info-box">
-              ID tujuan hanya disimpan pada tampilan ini untuk sementara.
-              Fitur unggah Roblox dan penyimpanan API key belum diaktifkan.
+              ID tujuan belum dikirim ke Roblox. Fitur unggah akan
+              dihubungkan melalui API server pada tahap berikutnya.
               Jangan masukkan API key Roblox di kolom ini.
             </div>
 
@@ -668,9 +667,8 @@
             </div>
 
             <div class="info-box">
-              Pengaturan di atas merupakan target pemrosesan.
-              Audio belum benar-benar diubah sampai mesin konversi
-              di sisi server selesai dibuat.
+              Pengaturan ini diterapkan saat audio diproses
+              oleh mesin konversi.
             </div>
           </div>
 
@@ -693,7 +691,9 @@
             </div>
 
             <p class="muted">
-              Kuota mengikuti status akun yang diverifikasi oleh server.
+              Kuota ditampilkan berdasarkan data yang dikirim server.
+              Pembatasan kuota pada proses konversi harus diterapkan
+              dan diverifikasi di server.
             </p>
 
             <button id="refreshQuota" class="btn full">
@@ -724,7 +724,9 @@
 
   </div>
 
-  <script>
+  <script type="module">
+    import { convertAudio } from "./audio-processor.js";
+
     const $ = (id) => document.getElementById(id);
 
     const MAX_AUDIO_SIZE = 5 * 1024 * 1024;
@@ -733,6 +735,8 @@
     let currentUsage = null;
     let selectedSource = "file";
     let selectedFile = null;
+    let downloadUrl = null;
+    let isConverting = false;
 
     function showNotice(element, message, type = "info") {
       element.textContent = message;
@@ -782,14 +786,15 @@
     function renderUsage(data) {
       currentUsage = data;
 
-      const role = normalizeRole(data.role);
-      $("userRole").textContent = role;
+      $("userRole").textContent = normalizeRole(data.role);
 
       if (data.unlimited || data.remaining === null) {
         $("quotaValue").textContent = "∞";
-      } else {
+      } else if (Number.isFinite(Number(data.remaining))) {
         $("quotaValue").textContent =
-          `${data.remaining ?? 0} / ${data.dailyLimit ?? 2}`;
+          `${data.remaining} / ${data.dailyLimit ?? 2}`;
+      } else {
+        $("quotaValue").textContent = "Memuat...";
       }
     }
 
@@ -828,6 +833,7 @@
 
       try {
         const data = await apiRequest("/api/history");
+
         list.replaceChildren();
 
         if (!Array.isArray(data.history) || data.history.length === 0) {
@@ -868,7 +874,7 @@
           list.appendChild(wrapper);
         }
       } catch (error) {
-        list.textContent = "";
+        list.replaceChildren();
 
         const message = document.createElement("p");
         message.className = "muted";
@@ -883,6 +889,7 @@
         const data = await apiRequest("/api/me");
 
         if (!data.loggedIn) {
+          currentUser = null;
           setLoggedIn(false);
           return;
         }
@@ -897,9 +904,6 @@
           currentUser.id ||
           "Pengguna Discord";
 
-        $("userRole").textContent =
-          normalizeRole(data.role || "FREE");
-
         renderUsage({
           role: data.role || "FREE",
           unlimited: Boolean(data.unlimited),
@@ -912,6 +916,9 @@
           loadHistory()
         ]);
       } catch (error) {
+        console.error("Inisialisasi gagal:", error);
+
+        currentUser = null;
         setLoggedIn(false);
 
         showNotice(
@@ -936,7 +943,7 @@
           cache: "no-store"
         });
       } catch (error) {
-        console.error("Logout request failed:", error);
+        console.error("Logout gagal:", error);
       }
 
       window.location.href = "/";
@@ -973,8 +980,7 @@
     $("audioFile").addEventListener("change", function () {
       hideNotice($("prepareNotice"));
 
-      const file = this.files && this.files[0];
-
+      const file = this.files?.[0];
       selectedFile = null;
 
       if (!file) {
@@ -986,7 +992,7 @@
       if (file.size > MAX_AUDIO_SIZE) {
         showNotice(
           $("prepareNotice"),
-          "File terlalu besar! Maksimal 5 MB. Pilih file yang lebih kecil.",
+          "File terlalu besar! Maksimal 5 MB.",
           "error"
         );
 
@@ -996,12 +1002,10 @@
         return;
       }
 
-      const allowedExtensions = /\.(mp3|wav|ogg|flac)$/i;
-
-      if (!allowedExtensions.test(file.name)) {
+      if (!/\.(mp3|wav|ogg|flac|m4a|aac|webm)$/i.test(file.name)) {
         showNotice(
           $("prepareNotice"),
-          "Format file tidak didukung. Gunakan MP3, WAV, OGG, atau FLAC.",
+          "Format tidak didukung. Gunakan MP3, WAV, OGG, FLAC, M4A, AAC, atau WEBM.",
           "error"
         );
 
@@ -1014,7 +1018,8 @@
       selectedFile = file;
 
       $("fileName").textContent =
-        file.name + " · " + (file.size / (1024 * 1024)).toFixed(2) + " MB";
+        file.name + " · " +
+        (file.size / (1024 * 1024)).toFixed(2) + " MB";
 
       updatePrepareButton();
     });
@@ -1024,24 +1029,26 @@
     $("creatorType").addEventListener("change", updatePrepareButton);
 
     function updatePrepareButton() {
-      const hasCreatorId = /^\d+$/.test($("creatorId").value.trim());
-      const hasName = $("audioName").value.trim().length > 0;
+      const hasCreatorId =
+        /^\d+$/.test($("creatorId").value.trim());
 
-      const ready =
-        selectedSource === "file" &&
-        Boolean(selectedFile) &&
-        selectedFile.size <= MAX_AUDIO_SIZE &&
-        hasCreatorId &&
-        hasName;
+      const hasName =
+        $("audioName").value.trim().length > 0;
 
-      $("prepareButton").disabled = !ready;
+      $("prepareButton").disabled =
+        isConverting ||
+        selectedSource !== "file" ||
+        !selectedFile ||
+        selectedFile.size > MAX_AUDIO_SIZE ||
+        !hasCreatorId ||
+        !hasName;
     }
 
-    $("prepareButton").addEventListener("click", () => {
+    $("prepareButton").addEventListener("click", async () => {
       if (!currentUser) {
         showNotice(
           $("prepareNotice"),
-          "Silakan login terlebih dahulu.",
+          "Silakan login Discord terlebih dahulu.",
           "error"
         );
         return;
@@ -1050,7 +1057,7 @@
       if (selectedSource !== "file" || !selectedFile) {
         showNotice(
           $("prepareNotice"),
-          "Untuk saat ini, pilih file audio langsung dari perangkat.",
+          "Pilih file audio terlebih dahulu.",
           "error"
         );
         return;
@@ -1059,17 +1066,109 @@
       if (selectedFile.size > MAX_AUDIO_SIZE) {
         showNotice(
           $("prepareNotice"),
-          "Ukuran file melebihi batas 5 MB.",
+          "Ukuran audio maksimal 5 MB.",
           "error"
         );
         return;
       }
 
-      showNotice(
-        $("prepareNotice"),
-        "File sudah dipilih dan lolos pemeriksaan ukuran. Mesin konversi dan unggah Roblox belum dihubungkan. Belum ada kuota yang digunakan.",
-        "info"
-      );
+      const audioName = $("audioName").value.trim();
+
+      isConverting = true;
+      updatePrepareButton();
+
+      $("audioFile").disabled = true;
+      $("audioName").disabled = true;
+      $("creatorId").disabled = true;
+      $("creatorType").disabled = true;
+
+      hideNotice($("prepareNotice"));
+
+      try {
+        showNotice(
+          $("prepareNotice"),
+          "Memulai mesin konversi audio...",
+          "info"
+        );
+
+        const result = await convertAudio(selectedFile, {
+          onProgress(message) {
+            showNotice(
+              $("prepareNotice"),
+              typeof message === "string"
+                ? message
+                : "Sedang memproses audio...",
+              "info"
+            );
+          }
+        });
+
+        if (!result?.blob || result.blob.size === 0) {
+          throw new Error("Hasil konversi kosong.");
+        }
+
+        if (downloadUrl) {
+          URL.revokeObjectURL(downloadUrl);
+        }
+
+        downloadUrl = URL.createObjectURL(result.blob);
+
+        const safeName = audioName
+          .replace(/[\\/:*?"<>|]/g, "_")
+          .slice(0, 100);
+
+        const downloadName = (safeName || "ZDC Audio") + ".mp3";
+
+        const downloadLink = document.createElement("a");
+        downloadLink.href = downloadUrl;
+        downloadLink.download = downloadName;
+        downloadLink.className = "btn btn-primary full";
+        downloadLink.style.marginTop = "12px";
+        downloadLink.textContent = "Unduh Hasil MP3";
+
+        const notice = $("prepareNotice");
+        notice.replaceChildren();
+
+        const message = document.createElement("p");
+        message.style.margin = "0";
+        message.style.whiteSpace = "pre-wrap";
+        message.textContent =
+          "KONVERSI BERHASIL!\n" +
+          "Nama hasil: " + downloadName + "\n" +
+          "Ukuran hasil: " +
+          (result.size / (1024 * 1024)).toFixed(2) +
+          " MB\n\n" +
+          "Audio berhasil diproses di browser. " +
+          "Belum diunggah ke Roblox dan belum dicatat ke riwayat server.";
+
+        notice.className = "notice show success";
+        notice.append(message, downloadLink);
+
+      } catch (error) {
+        console.error("Konversi gagal:", error);
+
+        showNotice(
+          $("prepareNotice"),
+          "KONVERSI GAGAL:\n" +
+          (error?.message || String(error)),
+          "error"
+        );
+      } finally {
+        isConverting = false;
+
+        $("audioFile").disabled = false;
+        $("audioName").disabled = false;
+        $("creatorId").disabled = false;
+        $("creatorType").disabled = false;
+
+        updatePrepareButton();
+      }
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+      }
     });
 
     const params = new URLSearchParams(window.location.search);

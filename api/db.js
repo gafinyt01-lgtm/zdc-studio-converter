@@ -1,8 +1,8 @@
-const { Pool } = require('@neondatabase/serverless');
+import { Pool } from '@neondatabase/serverless';
 
 let pool;
 
-function getPool() {
+export function getPool() {
     if (!process.env.DATABASE_URL) {
         throw new Error('DATABASE_URL belum diatur');
     }
@@ -15,5 +15,3 @@ function getPool() {
 
     return pool;
 }
-
-module.exports = { getPool };

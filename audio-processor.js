@@ -2,14 +2,19 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
 
 const CORE_BASE =
-  "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
+  "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm";
 
 let ffmpegInstance = null;
 let loadingPromise = null;
 
 export async function loadAudioProcessor(onProgress = () => {}) {
-  if (ffmpegInstance) return ffmpegInstance;
-  if (loadingPromise) return loadingPromise;
+  if (ffmpegInstance) {
+    return ffmpegInstance;
+  }
+
+  if (loadingPromise) {
+    return loadingPromise;
+  }
 
   loadingPromise = (async () => {
     const ffmpeg = new FFmpeg();
@@ -24,40 +29,49 @@ export async function loadAudioProcessor(onProgress = () => {}) {
       );
     });
 
-    onProgress("Memuat mesin FFmpeg...");
+    try {
+      onProgress("Mengunduh mesin FFmpeg...");
 
-    const coreURL = await toBlobURL(
-      `${CORE_BASE}/ffmpeg-core.js`,
-      "text/javascript"
-    );
+      const coreURL = await toBlobURL(
+        `${CORE_BASE}/ffmpeg-core.js`,
+        "text/javascript"
+      );
 
-    onProgress("Memuat komponen WASM...");
+      onProgress("Mengunduh komponen WASM...");
 
-    const wasmURL = await toBlobURL(
-      `${CORE_BASE}/ffmpeg-core.wasm`,
-      "application/wasm"
-    );
+      const wasmURL = await toBlobURL(
+        `${CORE_BASE}/ffmpeg-core.wasm`,
+        "application/wasm"
+      );
 
-    onProgress("Menjalankan mesin FFmpeg...");
+      onProgress("Menjalankan mesin FFmpeg...");
 
-    await ffmpeg.load({
-      coreURL,
-      wasmURL
-    });
+      await ffmpeg.load({
+        coreURL,
+        wasmURL
+      });
 
-    ffmpegInstance = ffmpeg;
-    onProgress("Mesin FFmpeg siap!");
+      ffmpegInstance = ffmpeg;
 
-    return ffmpeg;
+      onProgress("Mesin FFmpeg siap!");
+
+      return ffmpeg;
+    } catch (error) {
+      console.error("Gagal memuat FFmpeg:", error);
+
+      throw new Error(
+        `Mesin FFmpeg gagal dimuat: ${
+          error?.message || String(error)
+        }`
+      );
+    }
   })();
 
   try {
     return await loadingPromise;
   } catch (error) {
     loadingPromise = null;
-    throw new Error(
-      `Gagal memuat mesin FFmpeg: ${error?.message || error}`
-    );
+    throw error;
   }
 }
 
@@ -86,7 +100,7 @@ export async function convertAudio(
   const outputName = "zdc-output.mp3";
 
   try {
-    onProgress("Membaca audio...");
+    onProgress("Membaca berkas audio...");
 
     await ffmpeg.writeFile(
       inputName,

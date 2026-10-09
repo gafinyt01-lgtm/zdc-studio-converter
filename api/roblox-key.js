@@ -1,6 +1,10 @@
 import crypto from "node:crypto";
 import { getPool } from "./db.js";
 
+// ============================================
+// PENGATURAN COOKIE
+// ============================================
+
 function parseCookies(req) {
     const cookies = {};
     const header = req.headers.cookie || "";
@@ -8,25 +12,38 @@ function parseCookies(req) {
     for (const item of header.split(";")) {
         const index = item.indexOf("=");
 
-        if (index === -1) continue;
+        if (index < 0) continue;
 
         const name = item.slice(0, index).trim();
         const value = item.slice(index + 1).trim();
 
-        cookies[name] = decodeURIComponent(value);
+        try {
+            cookies[name] = decodeURIComponent(value);
+        } catch {
+            cookies[name] = "";
+        }
     }
 
     return cookies;
 }
 
+// ============================================
+// PEMERIKSAAN SESI DISCORD
+// ============================================
+
 function verifySession(req) {
     const token = parseCookies(req).zdc_session;
     const secret = process.env.SESSION_SECRET;
 
-    if (!token || !secret) return null;
+    if (!token || !secret) {
+        return null;
+    }
 
     const parts = token.split(".");
-    if (parts.length !== 2) return null;
+
+    if (parts.length !== 2) {
+        return null;
+    }
 
     const [payload, signature] = parts;
 
@@ -51,10 +68,12 @@ function verifySession(req) {
         );
 
         if (
-            !session.id ||
+            typeof session.id !== "string" ||
+            !/^\d+$/.test(session.id) ||
+            typeof session.username !== "string" ||
             !session.username ||
-            !session.exp ||
-            session.exp <= Math.floor(Date.now() / 1000)
+            !Number.isFinite(session.exp) ||
+            session.exp <= Date.now()
         ) {
             return null;
         }
@@ -64,6 +83,11 @@ function verifySession(req) {
         return null;
     }
 }
+
+// ============================================
+// ENKRIPSI ROBLOX API KEY
+// AES-256-GCM
+// ============================================
 
 function encryptApiKey(apiKey) {
     const secret = process.env.ENCRYPTION_KEY;
@@ -103,17 +127,40 @@ function encryptApiKey(apiKey) {
     ].join(":");
 }
 
+// ============================================
+// PEMERIKSAAN API KEY
+// ============================================
+
+function validateApiKey(apiKey) {
+    return (
+        typeof apiKey === "string" &&
+        apiKey.length >= 10 &&
+        apiKey.length <= 4096 &&
+        apiKey.trim() === apiKey &&
+        !/[\r\n]/.test(apiKey)
+    );
+}
+
+// ============================================
+// HANDLER UTAMA
+// ============================================
+
 export default async function handler(req, res) {
     res.setHeader("Cache-Control", "no-store");
 
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    // Hanya izinkan GET dan POST.
     if (!["GET", "POST"].includes(req.method)) {
         res.setHeader("Allow", "GET, POST");
+
         return res.status(405).json({
             ok: false,
             message: "Metode tidak diizinkan."
         });
     }
 
+    // Periksa sesi Discord.
     const session = verifySession(req);
 
     if (!session) {
@@ -123,8 +170,49 @@ export default async function handler(req, res) {
         });
     }
 
+    // Lindungi permintaan POST dari origin yang tidak dikenal.
+    if (req.method === "POST") {
+        const origin = req.headers.origin;
+
+        if (origin) {
+            try {
+                const originUrl = new URL(origin);
+                const host = req.headers.host;
+
+                if (
+                    !host ||
+                    originUrl.host.toLowerCase() !== host.toLowerCase() ||
+                    !["https:", "http:"].includes(originUrl.protocol)
+                ) {
+                    return res.status(403).json({
+                        ok: false,
+                        message: "Asal permintaan tidak diizinkan."
+                    });
+                }
+            } catch {
+                return res.status(403).json({
+                    ok: false,
+                    message: "Asal permintaan tidak valid."
+                });
+            }
+        }
+
+        const contentType = req.headers["content-type"] || "";
+
+        if (!contentType.toLowerCase().includes("application/json")) {
+            return res.status(415).json({
+                ok: false,
+                message: "Gunakan format application/json."
+            });
+        }
+    }
+
     try {
         const pool = getPool();
+
+        // ========================================
+        // GET: PERIKSA APAKAH API KEY TERSIMPAN
+        // ========================================
 
         if (req.method === "GET") {
             const result = await pool.query(
@@ -141,23 +229,24 @@ export default async function handler(req, res) {
             });
         }
 
+        // ========================================
+        // POST: SIMPAN API KEY TERENKRIPSI
+        // ========================================
+
         const apiKey = req.body?.apiKey;
 
-        if (
-            typeof apiKey !== "string" ||
-            apiKey.length < 10 ||
-            apiKey.length > 4096 ||
-            apiKey.trim() !== apiKey ||
-            /[\r\n]/.test(apiKey)
-        ) {
+        if (!validateApiKey(apiKey)) {
             return res.status(400).json({
                 ok: false,
                 message: "API Key tidak valid."
             });
         }
 
+        // Enkripsi sebelum menyimpan ke database.
         const encryptedApiKey = encryptApiKey(apiKey);
 
+        // Simpan data akun Discord.
+        // Jika akun sudah ada, jangan menimpa role pengguna.
         await pool.query(
             `INSERT INTO users (
                 discord_id,
@@ -172,6 +261,7 @@ export default async function handler(req, res) {
             [session.id, session.username]
         );
 
+        // Simpan atau perbarui API Key terenkripsi.
         await pool.query(
             `INSERT INTO roblox_credentials (
                 discord_id,
@@ -192,7 +282,9 @@ export default async function handler(req, res) {
             configured: true,
             message: "API Key berhasil disimpan secara terenkripsi."
         });
+
     } catch (error) {
+        // Jangan mencatat API Key atau data rahasia ke log.
         console.error(
             "Roblox credential operation failed:",
             error.message

@@ -1,23 +1,19 @@
 import { neon } from "@neondatabase/serverless";
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({
-      ok: false,
-      message: "Method not allowed"
-    });
-  }
+  const token = req.query?.token;
 
-  if (process.env.NODE_ENV === "production") {
+  if (
+    !process.env.DB_CHECK_TOKEN ||
+    token !== process.env.DB_CHECK_TOKEN
+  ) {
     return res.status(404).json({
       ok: false,
       message: "Not found"
     });
   }
 
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
+  if (!process.env.DATABASE_URL) {
     return res.status(500).json({
       ok: false,
       message: "DATABASE_URL belum dikonfigurasi"
@@ -25,18 +21,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const sql = neon(databaseUrl);
+    const sql = neon(process.env.DATABASE_URL);
     const result = await sql`SELECT NOW() AS database_time`;
 
     return res.status(200).json({
       ok: true,
-      message: "Koneksi database berhasil",
+      message: "Koneksi database berhasil!",
       databaseTime: result[0].database_time
     });
-  } catch {
+  } catch (error) {
+    console.error("Database check failed:", error.message);
+
     return res.status(500).json({
       ok: false,
-      message: "Koneksi database gagal. Periksa konfigurasi Vercel."
+      message: "Koneksi database gagal"
     });
   }
 }

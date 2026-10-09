@@ -1,4 +1,3 @@
-```javascript
 import crypto from "node:crypto";
 
 export default function handler(req, res) {
@@ -20,21 +19,23 @@ export default function handler(req, res) {
 
   const state = crypto.randomUUID();
 
-  res.setHeader("Set-Cookie", [
-    `discord_oauth_state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`
-  ]);
+  const cookie =
+    "discord_oauth_state=" +
+    state +
+    "; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600";
 
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    response_type: "code",
-    scope: "identify guilds",
-    state
-  });
+  res.setHeader("Set-Cookie", [cookie]);
 
-  return res.redirect(
-    302,
-    `https://discord.com/oauth2/authorize?${params.toString()}`
-  );
+  const params = new URLSearchParams();
+  params.set("client_id", clientId);
+  params.set("redirect_uri", redirectUri);
+  params.set("response_type", "code");
+  params.set("scope", "identify guilds");
+  params.set("state", state);
+
+  const authorizationUrl =
+    "https://discord.com/oauth2/authorize?" +
+    params.toString();
+
+  return res.redirect(302, authorizationUrl);
 }
-```

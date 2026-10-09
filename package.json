@@ -6,7 +6,16 @@
 "engines": {
 "node": "22.x"
 },
+"scripts": {
+"build": "vite build"
+},
 "dependencies": {
 "@neondatabase/serverless": "^1.0.2"
+},
+"devDependencies": {
+"@ffmpeg/ffmpeg": "0.12.10",
+"@ffmpeg/util": "0.12.2",
+"@ffmpeg/core": "0.12.10",
+"vite": "^6.1.0"
 }
 }

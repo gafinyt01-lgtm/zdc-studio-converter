@@ -1,275 +1,542 @@
 <!DOCTYPE html><html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#080810">
-<meta name="description" content="ZDC Studio Asset Converter — workspace untuk komunitas ZDC.">
-<title>ZDC Studio | Asset Converter</title><style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090713">  <title>ZDC Studio Converter</title>  <style>
+    :root {
+      --bg: #090713;
+      --panel: #141020;
+      --panel2: #1c1530;
+      --purple: #a855f7;
+      --purple2: #7c3aed;
+      --text: #f5f3ff;
+      --muted: #aaa2bd;
+      --border: rgba(192, 132, 252, 0.18);
+      --green: #4ade80;
+    }
 
-body {
-  font-family: Arial, sans-serif;
-  background: #080810;
-  color: #f5f5ff;
-  min-height: 100vh;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 22px 7%;
-  border-bottom: 1px solid #ffffff12;
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at top, #291447 0%, transparent 48%),
+        var(--bg);
+    }
 
-.logo {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 2px;
-}
+    button {
+      font: inherit;
+    }
 
-.logo span {
-  color: #9b75ff;
-}
+    .container {
+      width: min(100% - 32px, 1000px);
+      margin: auto;
+    }
 
-.nav {
-  color: #aaaac4;
-  font-size: 13px;
-}
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
 
-main {
-  max-width: 1000px;
-  margin: auto;
-  padding: 75px 22px 45px;
-  text-align: center;
-}
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-.badge {
-  display: inline-block;
-  padding: 9px 15px;
-  border-radius: 30px;
-  background: #a47aff15;
-  border: 1px solid #a47aff40;
-  color: #bda5ff;
-  font-size: 12px;
-  margin-bottom: 25px;
-}
+    .logo {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #c084fc, #6d28d9);
+      font-size: 20px;
+      font-weight: 900;
+      box-shadow: 0 0 25px #9333ea35;
+    }
 
-h1 {
-  font-size: clamp(38px, 8vw, 68px);
-  line-height: 1.08;
-  letter-spacing: -2px;
-}
+    .brand h2 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: 0.5px;
+    }
 
-h1 span {
-  background: linear-gradient(90deg, #a78bfa, #6ea8ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+    .brand p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
 
-.desc {
-  max-width: 540px;
-  margin: 22px auto;
-  color: #9a9ab2;
-  font-size: 15px;
-  line-height: 1.8;
-}
+    .badge {
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 8px 12px;
+      color: #d8b4fe;
+      background: #a855f711;
+      font-size: 11px;
+      white-space: nowrap;
+    }
 
-.button {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 15px 25px;
-  border: 0;
-  border-radius: 12px;
-  background: linear-gradient(100deg, #8055ee, #537bff);
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 8px 35px #7755ff30;
-  transition: transform 0.2s, opacity 0.2s;
-}
+    main {
+      padding: 65px 0 40px;
+    }
 
-.button:hover {
-  transform: translateY(-2px);
-}
+    .hero {
+      max-width: 700px;
+      margin: 0 auto 38px;
+      text-align: center;
+    }
 
-.button:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 13px;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: #d8b4fe;
+      background: #a855f710;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
 
-.features {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 35px;
-}
+    .hero h1 {
+      margin: 22px 0 14px;
+      font-size: clamp(34px, 7vw, 58px);
+      line-height: 1.08;
+      letter-spacing: -1.5px;
+    }
 
-.feature {
-  background: #ffffff06;
-  border: 1px solid #ffffff12;
-  border-radius: 10px;
-  padding: 12px 15px;
-  color: #bcbcd0;
-  font-size: 12px;
-}
+    .gradient {
+      color: #c084fc;
+      background: linear-gradient(90deg, #c084fc, #818cf8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-.panel {
-  margin: 75px auto 0;
-  max-width: 720px;
-  text-align: left;
-  border: 1px solid #ffffff16;
-  border-radius: 18px;
-  background: linear-gradient(145deg, #151522, #0d0d17);
-  padding: 25px;
-  box-shadow: 0 20px 80px #0008;
-}
+    .hero > p {
+      max-width: 540px;
+      margin: 0 auto;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 15px;
+    }
 
-.panel h2 {
-  font-size: 18px;
-  margin-bottom: 9px;
-}
+    .card {
+      width: min(100%, 540px);
+      margin: auto;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: linear-gradient(145deg, #191226, #100c1b);
+      box-shadow: 0 20px 70px #00000035;
+    }
 
-.panel p {
-  color: #9999b1;
-  font-size: 13px;
-  line-height: 1.7;
-}
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 21px;
+    }
 
-.upload {
-  margin-top: 22px;
-  padding: 35px 15px;
-  text-align: center;
-  border: 1px dashed #7d6bb8;
-  border-radius: 13px;
-  background: #a47aff08;
-  color: #b9a5ff;
-}
+    .description {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
 
-.upload small {
-  display: block;
-  color: #9292aa;
-  margin-top: 10px;
-  line-height: 1.7;
-}
+    .status {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #a855f709;
+      color: #ddd6fe;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
 
-.status {
-  display: none;
-  margin: 20px auto 0;
-  max-width: 540px;
-  padding: 13px 16px;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
+    .status-dot {
+      flex: 0 0 8px;
+      width: 8px;
+      height: 8px;
+      margin-top: 5px;
+      border-radius: 50%;
+      background: var(--purple);
+    }
 
-.status.info {
-  display: block;
-  color: #c9bbff;
-  background: #a47aff12;
-  border: 1px solid #a47aff35;
-}
+    .status.success .status-dot {
+      background: var(--green);
+    }
 
-.status.error {
-  display: block;
-  color: #ffb4b4;
-  background: #ff444412;
-  border: 1px solid #ff444435;
-}
+    .status.error .status-dot {
+      background: #fb7185;
+    }
 
-footer {
-  padding: 25px;
-  text-align: center;
-  color: #68687f;
-  font-size: 11px;
-  border-top: 1px solid #ffffff10;
-}
+    .button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 49px;
+      padding: 13px 18px;
+      border: 0;
+      border-radius: 12px;
+      color: white;
+      background: linear-gradient(100deg, #9333ea, #6d28d9);
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.2s;
+    }
 
-@media (max-width: 500px) {
-  header {
-    padding: 19px 5%;
-  }
+    .button:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
 
-  main {
-    padding-top: 60px;
-  }
+    .button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
 
-  .panel {
-    padding: 19px;
-  }
+    .button.secondary {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      color: #e9d5ff;
+      background: #a855f711;
+    }
 
-  .nav {
-    font-size: 10px;
-  }
+    .discord-icon {
+      font-size: 20px;
+    }
 
-  .button {
-    max-width: 100%;
-    padding: 15px 18px;
-    font-size: 12px;
-  }
-}
-</style></head><body>
-<header>
-  <div class="logo">ZDC <span>STUDIO</span></div>
-  <div class="nav">ASSET TOOLS &nbsp; • &nbsp; COMMUNITY</div>
-</header><main>
-  <div class="badge">✦ ZDC COMMUNITY PROJECT</div>  <h1>
-    Your Assets.<br>
-    <span>One Simple Tool.</span>
-  </h1>  <p class="desc">
-    A simple workspace for your Roblox assets.
-    Connect with the ZDC Community and explore our
-    asset conversion tools.
-  </p><button
-id="discordLogin"
-class="button"
-type="button"
-onclick="authorizeDiscord()"
+    .small-note {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+      text-align: center;
+    }
 
-«»
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 42px;
+    }
 
-◈ &nbsp; AUTHORIZE WITH DISCORD
+    .feature {
+      padding: 19px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #ffffff04;
+    }
 
-  </button>  <div id="statusMessage" class="status" role="status" aria-live="polite"></div>  <div class="features">
-    <div class="feature">✦ 2 Free Uses / Day</div>
-    <div class="feature">⚡ Premium Access</div>
-    <div class="feature">◈ ZDC Member Access</div>
-  </div>  <section class="panel">
-    <h2>Asset Converter</h2>
+    .feature-icon {
+      margin-bottom: 12px;
+      font-size: 24px;
+    }
+
+    .feature h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .account {
+      display: none;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .account.visible {
+      display: block;
+    }
+
+    .account-label {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .username {
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    footer {
+      padding: 24px 0 30px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        align-items: flex-start;
+      }
+
+      .badge {
+        font-size: 10px;
+      }
+
+      main {
+        padding-top: 42px;
+      }
+
+      .card {
+        padding: 22px 18px;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+        margin-top: 25px;
+      }
+
+      .feature {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+      }
+
+      .feature-icon {
+        margin: 0;
+      }
+    }
+  </style></head><body>
+  <div class="container"><header>
+  <div class="brand">
+    <div class="logo">Z</div>
+    <div>
+      <h2>ZDC STUDIO</h2>
+      <p>Audio Converter</p>
+    </div>
+  </div>
+
+  <div class="badge">ZDC COMMUNITY</div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">✦ ZDC STUDIO TOOLS ✦</div>
+
+    <h1>
+      Your Audio.<br>
+      <span class="gradient">Your Creativity.</span>
+    </h1>
+
     <p>
-      Your conversion workspace will be available here.
-    </p><div class="upload">
-  <strong>✧ &nbsp; Conversion tools coming soon</strong>
-  <small>
-    Upload and supported formats will be enabled
-    after the processing system is configured.
-  </small>
-</div>
-
+      Platform pengolahan audio untuk kebutuhan kreatifmu.
+      Login menggunakan Discord untuk mengakses layanan ZDC Studio.
+    </p>
   </section>
-</main><footer>
-  © 2026 ZDC STUDIO · MADE FOR THE COMMUNITY
-</footer><script>
-function authorizeDiscord() {
-  const button = document.getElementById("discordLogin");
-  const status = document.getElementById("statusMessage");
 
-  button.disabled = true;
-  button.textContent = "CONNECTING TO DISCORD...";
+  <section class="card">
+    <h2>Akses akun kamu</h2>
 
-  status.className = "status info";
-  status.textContent = "Menghubungkan kamu ke Discord...";
+    <p class="description">
+      Hubungkan akun Discord dan pastikan kamu sudah bergabung
+      dengan server ZDC Community.
+    </p>
 
-  // Memulai OAuth melalui backend di domain website ini.
-  window.location.assign("/api/auth/discord");
-}
-</script></body>
+    <div id="statusMessage" class="status">
+      <span class="status-dot"></span>
+      <span id="statusText">Memeriksa status login...</span>
+    </div>
+
+    <button
+      id="discordLogin"
+      class="button"
+      type="button"
+      onclick="authorizeDiscord()"
+    >
+      <span class="discord-icon">◈</span>
+      LOGIN DENGAN DISCORD
+    </button>
+
+    <div id="accountPanel" class="account">
+      <div class="account-label">LOGIN SEBAGAI</div>
+      <div id="discordUsername" class="username">-</div>
+
+      <button
+        id="logoutButton"
+        class="button secondary"
+        type="button"
+      >
+        LOGOUT
+      </button>
+    </div>
+
+    <p class="small-note">
+      Jangan bagikan informasi rahasia akunmu kepada siapa pun.
+      Login dilakukan melalui Discord.
+    </p>
+  </section>
+
+  <section class="features">
+    <article class="feature">
+      <div class="feature-icon">🎧</div>
+      <div>
+        <h3>Pengolahan Audio</h3>
+        <p>
+          Antarmuka untuk layanan pengolahan audio.
+          Fitur pemrosesan akan diaktifkan setelah backend tersedia.
+        </p>
+      </div>
+    </article>
+
+    <article class="feature">
+      <div class="feature-icon">🔐</div>
+      <div>
+        <h3>Akses Discord</h3>
+        <p>
+          Sistem login memeriksa keanggotaan ZDC Community
+          sebelum memberikan akses.
+        </p>
+      </div>
+    </article>
+
+    <article class="feature">
+      <div class="feature-icon">⚡</div>
+      <div>
+        <h3>Sistem Kuota</h3>
+        <p>
+          Dukungan akun gratis dan premium akan dihubungkan
+          setelah sistem kuota backend selesai dibuat.
+        </p>
+      </div>
+    </article>
+  </section>
+</main>
+
+<footer>
+  <strong>ZDC STUDIO</strong><br>
+  Dibuat untuk komunitas ZDC Community.<br>
+  © 2026 ZDC Studio. 
+</footer>
+
+  </div>  <script>
+    const loginButton = document.getElementById("discordLogin");
+    const logoutButton = document.getElementById("logoutButton");
+    const accountPanel = document.getElementById("accountPanel");
+    const usernameElement = document.getElementById("discordUsername");
+    const statusMessage = document.getElementById("statusMessage");
+    const statusText = document.getElementById("statusText");
+
+    function showStatus(message, type = "") {
+      statusMessage.className = "status" + (type ? " " + type : "");
+      statusText.textContent = message;
+    }
+
+    function authorizeDiscord() {
+      loginButton.disabled = true;
+      loginButton.textContent = "MENGHUBUNGKAN DISCORD...";
+      showStatus("Mengalihkan kamu ke halaman otorisasi Discord.");
+
+      window.location.assign("/api/auth/discord");
+    }
+
+    async function checkSession() {
+      loginButton.disabled = true;
+      showStatus("Memeriksa sesi login...");
+
+      try {
+        const response = await fetch("/api/me", {
+          method: "GET",
+          cache: "no-store",
+          credentials: "same-origin"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error("Pemeriksaan sesi gagal.");
+        }
+
+        if (data.loggedIn && data.user) {
+          usernameElement.textContent = data.user.username;
+          accountPanel.classList.add("visible");
+          loginButton.hidden = true;
+
+          showStatus(
+            "Login berhasil. Sesi akun kamu terdeteksi.",
+            "success"
+          );
+        } else {
+          accountPanel.classList.remove("visible");
+          loginButton.hidden = false;
+          loginButton.disabled = false;
+          loginButton.innerHTML =
+            '<span class="discord-icon">◈</span> LOGIN DENGAN DISCORD';
+
+          showStatus("Kamu belum login. Silakan hubungkan Discord.");
+        }
+      } catch (error) {
+        loginButton.hidden = false;
+        loginButton.disabled = false;
+
+        showStatus(
+          "Tidak dapat memeriksa sesi. Muat ulang halaman atau coba lagi.",
+          "error"
+        );
+      }
+    }
+
+    async function logoutDiscord() {
+      logoutButton.disabled = true;
+      logoutButton.textContent = "SEDANG LOGOUT...";
+
+      try {
+        const response = await fetch("/api/logout", {
+          method: "POST",
+          credentials: "same-origin"
+        });
+
+        if (!response.ok) {
+          throw new Error("Logout gagal.");
+        }
+
+        accountPanel.classList.remove("visible");
+        loginButton.hidden = false;
+        loginButton.disabled = false;
+        loginButton.innerHTML =
+          '<span class="discord-icon">◈</span> LOGIN DENGAN DISCORD';
+
+        showStatus("Kamu berhasil logout.");
+
+      } catch (error) {
+        showStatus("Logout gagal. Silakan coba lagi.", "error");
+      } finally {
+        logoutButton.disabled = false;
+        logoutButton.textContent = "LOGOUT";
+      }
+    }
+
+    logoutButton.addEventListener("click", logoutDiscord);
+
+    checkSession();
+  </script></body>
 </html>

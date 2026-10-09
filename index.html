@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0713">
+  <meta name="description" content="ZDC Studio Converter untuk kreator Roblox.">
   <title>ZDC Studio Converter</title>
 
   <style>
@@ -42,6 +43,12 @@
       cursor: pointer;
     }
 
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
     .container {
       width: min(1100px, 92%);
       margin: auto;
@@ -67,6 +74,7 @@
       height: 46px;
       display: grid;
       place-items: center;
+      flex-shrink: 0;
       border-radius: 14px;
       font-weight: 900;
       font-size: 17px;
@@ -102,6 +110,7 @@
       border: 1px solid var(--border);
       border-radius: 20px;
       box-shadow: 0 18px 60px #00000025;
+      min-width: 0;
     }
 
     .hero {
@@ -109,7 +118,7 @@
     }
 
     .hero h2 {
-      margin: 0 0 10px;
+      margin: 12px 0 10px;
       font-size: clamp(25px, 4vw, 36px);
       line-height: 1.2;
     }
@@ -134,6 +143,7 @@
     .stack {
       display: grid;
       gap: 20px;
+      min-width: 0;
     }
 
     .section-title {
@@ -150,10 +160,12 @@
     }
 
     input[type="text"],
+    input[type="password"],
     input[type="url"],
     input[type="number"],
     select {
       width: 100%;
+      min-width: 0;
       padding: 13px 14px;
       color: white;
       background: #0d0915;
@@ -164,6 +176,11 @@
 
     input:focus, select:focus {
       border-color: var(--purple);
+      box-shadow: 0 0 0 2px #a855f722;
+    }
+
+    input:disabled, select:disabled {
+      opacity: 0.6;
     }
 
     select option {
@@ -186,7 +203,7 @@
       transition: 0.2s;
     }
 
-    .btn:hover {
+    .btn:hover:not(:disabled) {
       border-color: var(--purple);
       transform: translateY(-1px);
     }
@@ -196,7 +213,7 @@
       border-color: transparent;
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       box-shadow: 0 0 22px #9333ea55;
     }
 
@@ -204,12 +221,6 @@
       color: #fecdd3;
       background: #88133722;
       border-color: #9f123955;
-    }
-
-    .btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
     }
 
     .full {
@@ -302,7 +313,8 @@
       border-radius: 10px;
       color: #d8c6ed;
       font-size: 12px;
-      line-height: 1.6;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
     }
 
     .stats {
@@ -317,6 +329,7 @@
       background: #100b19;
       border: 1px solid var(--border);
       border-radius: 13px;
+      min-width: 0;
     }
 
     .stat span {
@@ -400,6 +413,7 @@
       font-size: 11px;
       margin-top: 7px;
       line-height: 1.6;
+      overflow-wrap: anywhere;
     }
 
     .status {
@@ -411,6 +425,58 @@
 
     .hidden {
       display: none !important;
+    }
+
+    .key-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .key-input-row input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .key-input-row .btn {
+      flex-shrink: 0;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #0d0915;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #a69bb9;
+      flex-shrink: 0;
+    }
+
+    .status-dot.connected {
+      background: var(--green);
+      box-shadow: 0 0 10px #4ade8055;
+    }
+
+    .status-dot.disconnected {
+      background: var(--red);
+    }
+
+    .small-text {
+      font-size: 11px;
+      line-height: 1.7;
+      color: var(--muted);
     }
 
     footer {
@@ -450,9 +516,50 @@
         font-size: 16px;
       }
 
+      .header-actions {
+        text-align: right;
+      }
+
       .header-actions .btn {
         padding: 9px;
         font-size: 11px;
+      }
+
+      .badge {
+        font-size: 10px;
+        padding: 7px 9px;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .brand {
+        gap: 8px;
+      }
+
+      .brand h1 {
+        font-size: 14px;
+      }
+
+      .brand p {
+        font-size: 10px;
+      }
+
+      .brand .logo {
+        width: 39px;
+        height: 39px;
+        font-size: 14px;
+      }
+
+      .header-actions .badge {
+        display: none;
+      }
+
+      .key-input-row {
+        flex-direction: column;
+      }
+
+      .key-input-row .btn {
+        width: 100%;
       }
     }
   </style>
@@ -533,6 +640,81 @@
 
         <div class="stack">
 
+          <!-- PENGATURAN ROBLOX API KEY -->
+          <div class="panel">
+            <h3 class="section-title">🔐 Hubungkan Roblox</h3>
+
+            <p class="muted">
+              Simpan API Key Roblox kamu agar backend ZDC dapat
+              menyiapkan integrasi unggah audio pada tahap berikutnya.
+            </p>
+
+            <div class="connection-status" aria-live="polite">
+              <span id="robloxStatusDot" class="status-dot"></span>
+              <span id="robloxStatusText">Memeriksa status...</span>
+            </div>
+
+            <form id="robloxKeyForm">
+              <label for="robloxApiKey">Roblox API Key</label>
+
+              <div class="key-input-row">
+                <input
+                  id="robloxApiKey"
+                  type="password"
+                  placeholder="Masukkan API Key Roblox"
+                  autocomplete="new-password"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  maxlength="4096"
+                  required
+                >
+
+                <button
+                  id="toggleKeyVisibility"
+                  type="button"
+                  class="btn"
+                  aria-label="Tampilkan atau sembunyikan API Key"
+                >Lihat</button>
+              </div>
+
+              <button
+                id="saveRobloxKey"
+                type="submit"
+                class="btn btn-primary full"
+                style="margin-top:14px"
+              >
+                💾 Simpan API Key
+              </button>
+            </form>
+
+            <button
+              id="checkRobloxKey"
+              type="button"
+              class="btn full"
+              style="margin-top:10px"
+            >
+              🔄 Periksa Status
+            </button>
+
+            <div id="robloxKeyNotice" class="notice" aria-live="polite"></div>
+
+            <div class="info-box">
+              <strong>Keamanan API Key</strong><br>
+              API Key dikirim ke backend melalui HTTPS dan disimpan
+              dalam bentuk terenkripsi di database. API Key tidak
+              akan ditampilkan kembali setelah penyimpanan.
+              Jangan bagikan API Key kepada orang lain.
+            </div>
+
+            <p class="small-text">
+              Status tersimpan hanya memastikan bahwa kredensial
+              tersedia di database. Status ini belum membuktikan
+              bahwa API Key valid atau bahwa unggah audio ke Roblox
+              sudah berfungsi.
+            </p>
+          </div>
+
+          <!-- PILIH AUDIO -->
           <div class="panel">
             <h3 class="section-title">🎵 Pilih Audio</h3>
 
@@ -602,12 +784,12 @@
 
             <label for="creatorId">ID Akun atau Grup Roblox</label>
             <input id="creatorId" type="text" inputmode="numeric"
-              placeholder="Masukkan ID Roblox">
+              maxlength="20" placeholder="Masukkan ID Roblox">
 
             <div class="info-box">
               ID tujuan belum dikirim ke Roblox. Fitur unggah akan
               dihubungkan melalui API server pada tahap berikutnya.
-              Jangan masukkan API key Roblox di kolom ini.
+              Kolom API Key terpisah tersedia di bagian Hubungkan Roblox.
             </div>
 
             <button id="prepareButton" class="btn btn-primary full"
@@ -615,9 +797,10 @@
               Siapkan Audio
             </button>
 
-            <div id="prepareNotice" class="notice"></div>
+            <div id="prepareNotice" class="notice" aria-live="polite"></div>
           </div>
 
+          <!-- RIWAYAT -->
           <div class="panel">
             <h3 class="section-title">🕘 Riwayat Konversi</h3>
             <p class="muted">
@@ -638,6 +821,7 @@
 
         <div class="stack">
 
+          <!-- PENGATURAN AUDIO -->
           <div class="panel">
             <h3 class="section-title">⚙️ Pengaturan Audio</h3>
 
@@ -667,11 +851,13 @@
             </div>
 
             <div class="info-box">
-              Pengaturan ini diterapkan saat audio diproses
-              oleh mesin konversi.
+              Pengaturan ini ditampilkan sebagai informasi.
+              Pastikan mesin konversi menerapkan pengaturan yang
+              sesuai sebelum mengandalkan hasil keluarannya.
             </div>
           </div>
 
+          <!-- PAKET -->
           <div class="panel">
             <h3 class="section-title">👑 Paket Akun</h3>
 
@@ -701,15 +887,16 @@
             </button>
           </div>
 
+          <!-- KEAMANAN -->
           <div class="panel">
-            <h3 class="section-title">🔐 Keamanan</h3>
+            <h3 class="section-title">🛡️ Keamanan Akun</h3>
             <p class="muted">
               Login menggunakan Discord. Status keanggotaan komunitas,
               kuota, dan akses akun diperiksa melalui API server.
             </p>
             <p class="muted">
-              Jangan membagikan cookie sesi atau API key Roblox kepada
-              orang lain.
+              Jangan membagikan cookie sesi atau API Key Roblox
+              kepada orang lain.
             </p>
           </div>
 
@@ -737,6 +924,8 @@
     let selectedFile = null;
     let downloadUrl = null;
     let isConverting = false;
+    let isSavingKey = false;
+    let keyConfigured = false;
 
     function showNotice(element, message, type = "info") {
       element.textContent = message;
@@ -790,7 +979,11 @@
 
       if (data.unlimited || data.remaining === null) {
         $("quotaValue").textContent = "∞";
-      } else if (Number.isFinite(Number(data.remaining))) {
+      } else if (
+        data.remaining !== undefined &&
+        data.remaining !== null &&
+        Number.isFinite(Number(data.remaining))
+      ) {
         $("quotaValue").textContent =
           `${data.remaining} / ${data.dailyLimit ?? 2}`;
       } else {
@@ -884,6 +1077,184 @@
       }
     }
 
+    // =========================================
+    // STATUS ROBLOX API KEY
+    // =========================================
+
+    function renderRobloxStatus(configured, message) {
+      keyConfigured = configured;
+
+      const dot = $("robloxStatusDot");
+      const text = $("robloxStatusText");
+
+      dot.classList.remove("connected", "disconnected");
+
+      if (configured) {
+        dot.classList.add("connected");
+        text.textContent = message || "API Key sudah tersimpan.";
+      } else {
+        dot.classList.add("disconnected");
+        text.textContent = message || "API Key belum tersimpan.";
+      }
+    }
+
+    async function loadRobloxKeyStatus(showResult = false) {
+      $("checkRobloxKey").disabled = true;
+
+      try {
+        const data = await apiRequest("/api/roblox-key");
+
+        renderRobloxStatus(
+          data.configured === true,
+          data.configured
+            ? "API Key sudah tersimpan secara terenkripsi."
+            : "API Key belum tersimpan."
+        );
+
+        if (showResult) {
+          showNotice(
+            $("robloxKeyNotice"),
+            data.configured
+              ? "Pemeriksaan berhasil. API Key sudah tersimpan."
+              : "Pemeriksaan berhasil. Belum ada API Key yang tersimpan.",
+            data.configured ? "success" : "info"
+          );
+        }
+
+        return data.configured === true;
+      } catch (error) {
+        renderRobloxStatus(
+          false,
+          "Status belum dapat diverifikasi."
+        );
+
+        if (showResult) {
+          showNotice(
+            $("robloxKeyNotice"),
+            error.message,
+            "error"
+          );
+        }
+
+        return null;
+      } finally {
+        $("checkRobloxKey").disabled = false;
+      }
+    }
+
+    // =========================================
+    // SIMPAN ROBLOX API KEY
+    // =========================================
+
+    $("robloxKeyForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (isSavingKey) return;
+
+      const input = $("robloxApiKey");
+      const button = $("saveRobloxKey");
+      const apiKey = input.value;
+
+      if (!apiKey || apiKey.length < 10 || apiKey.length > 4096) {
+        showNotice(
+          $("robloxKeyNotice"),
+          "API Key tidak valid. Periksa kembali isinya.",
+          "error"
+        );
+        return;
+      }
+
+      if (apiKey.trim() !== apiKey || /[\r\n]/.test(apiKey)) {
+        showNotice(
+          $("robloxKeyNotice"),
+          "API Key mengandung spasi di awal/akhir atau karakter baris baru.",
+          "error"
+        );
+        return;
+      }
+
+      isSavingKey = true;
+      button.disabled = true;
+      $("checkRobloxKey").disabled = true;
+      input.disabled = true;
+      $("toggleKeyVisibility").disabled = true;
+
+      button.textContent = "Menyimpan...";
+
+      showNotice(
+        $("robloxKeyNotice"),
+        "Mengirim API Key ke backend untuk dienkripsi dan disimpan...",
+        "info"
+      );
+
+      try {
+        const data = await apiRequest("/api/roblox-key", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            apiKey
+          })
+        });
+
+        // Kosongkan input agar rahasia tidak tertinggal di formulir.
+        input.value = "";
+        input.type = "password";
+        $("toggleKeyVisibility").textContent = "Lihat";
+
+        renderRobloxStatus(
+          data.configured === true,
+          "API Key sudah tersimpan secara terenkripsi."
+        );
+
+        showNotice(
+          $("robloxKeyNotice"),
+          data.message || "API Key berhasil disimpan.",
+          "success"
+        );
+
+      } catch (error) {
+        // Jangan mencetak API Key ke konsol atau pesan kesalahan.
+        showNotice(
+          $("robloxKeyNotice"),
+          "Gagal menyimpan API Key: " + error.message,
+          "error"
+        );
+      } finally {
+        isSavingKey = false;
+        button.disabled = false;
+        $("checkRobloxKey").disabled = false;
+        input.disabled = false;
+        $("toggleKeyVisibility").disabled = false;
+        button.textContent = "💾 Simpan API Key";
+      }
+    });
+
+    // =========================================
+    // TAMPILKAN / SEMBUNYIKAN API KEY
+    // =========================================
+
+    $("toggleKeyVisibility").addEventListener("click", () => {
+      const input = $("robloxApiKey");
+
+      if (input.type === "password") {
+        input.type = "text";
+        $("toggleKeyVisibility").textContent = "Sembunyikan";
+      } else {
+        input.type = "password";
+        $("toggleKeyVisibility").textContent = "Lihat";
+      }
+    });
+
+    $("checkRobloxKey").addEventListener("click", async () => {
+      await loadRobloxKeyStatus(true);
+    });
+
+    // =========================================
+    // INISIALISASI DASHBOARD
+    // =========================================
+
     async function initialize() {
       try {
         const data = await apiRequest("/api/me");
@@ -913,10 +1284,12 @@
 
         await Promise.all([
           loadUsage(),
-          loadHistory()
+          loadHistory(),
+          loadRobloxKeyStatus(false)
         ]);
+
       } catch (error) {
-        console.error("Inisialisasi gagal:", error);
+        console.error("Inisialisasi gagal:", error.message);
 
         currentUser = null;
         setLoggedIn(false);
@@ -928,6 +1301,10 @@
         );
       }
     }
+
+    // =========================================
+    // LOGIN DAN LOGOUT
+    // =========================================
 
     $("loginButton").addEventListener("click", () => {
       window.location.href = "/api/auth/discord";
@@ -943,7 +1320,7 @@
           cache: "no-store"
         });
       } catch (error) {
-        console.error("Logout gagal:", error);
+        console.error("Logout gagal:", error.message);
       }
 
       window.location.href = "/";
@@ -951,6 +1328,10 @@
 
     $("refreshQuota").addEventListener("click", loadUsage);
     $("refreshHistory").addEventListener("click", loadHistory);
+
+    // =========================================
+    // PILIH SUMBER AUDIO
+    // =========================================
 
     document.querySelectorAll(".tab").forEach((button) => {
       button.addEventListener("click", () => {
@@ -976,6 +1357,10 @@
         hideNotice($("prepareNotice"));
       });
     });
+
+    // =========================================
+    // VALIDASI FILE AUDIO
+    // =========================================
 
     $("audioFile").addEventListener("change", function () {
       hideNotice($("prepareNotice"));
@@ -1043,6 +1428,10 @@
         !hasCreatorId ||
         !hasName;
     }
+
+    // =========================================
+    // KONVERSI AUDIO
+    // =========================================
 
     $("prepareButton").addEventListener("click", async () => {
       if (!currentUser) {
@@ -1136,7 +1525,7 @@
           "KONVERSI BERHASIL!\n" +
           "Nama hasil: " + downloadName + "\n" +
           "Ukuran hasil: " +
-          (result.size / (1024 * 1024)).toFixed(2) +
+          (result.blob.size / (1024 * 1024)).toFixed(2) +
           " MB\n\n" +
           "Audio berhasil diproses di browser. " +
           "Belum diunggah ke Roblox dan belum dicatat ke riwayat server.";
@@ -1145,7 +1534,7 @@
         notice.append(message, downloadLink);
 
       } catch (error) {
-        console.error("Konversi gagal:", error);
+        console.error("Konversi gagal:", error.message);
 
         showNotice(
           $("prepareNotice"),
@@ -1153,6 +1542,7 @@
           (error?.message || String(error)),
           "error"
         );
+
       } finally {
         isConverting = false;
 

@@ -21,9 +21,7 @@
       --red: #fb7185;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -35,16 +33,11 @@
       font-family: Arial, Helvetica, sans-serif;
     }
 
-    button, input, select {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
 
     button:disabled {
-      opacity: 0.5;
+      opacity: .5;
       cursor: not-allowed;
       transform: none !important;
     }
@@ -82,10 +75,7 @@
       box-shadow: 0 0 28px #9333ea44;
     }
 
-    .brand h1 {
-      margin: 0;
-      font-size: 19px;
-    }
+    .brand h1 { margin: 0; font-size: 19px; }
 
     .brand p {
       margin: 5px 0 0;
@@ -113,9 +103,7 @@
       min-width: 0;
     }
 
-    .hero {
-      margin-bottom: 22px;
-    }
+    .hero { margin-bottom: 22px; }
 
     .hero h2 {
       margin: 12px 0 10px;
@@ -123,9 +111,7 @@
       line-height: 1.2;
     }
 
-    .gradient-text {
-      color: #c084fc;
-    }
+    .gradient-text { color: #c084fc; }
 
     .hero p, .muted {
       color: var(--muted);
@@ -135,7 +121,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
+      grid-template-columns: 1.2fr .8fr;
       gap: 20px;
       align-items: start;
     }
@@ -179,13 +165,8 @@
       box-shadow: 0 0 0 2px #a855f722;
     }
 
-    input:disabled, select:disabled {
-      opacity: 0.6;
-    }
-
-    select option {
-      background: #151020;
-    }
+    input:disabled, select:disabled { opacity: .6; }
+    select option { background: #151020; }
 
     .btn {
       display: inline-flex;
@@ -200,7 +181,7 @@
       color: white;
       font-weight: bold;
       text-decoration: none;
-      transition: 0.2s;
+      transition: .2s;
     }
 
     .btn:hover:not(:disabled) {
@@ -223,9 +204,7 @@
       border-color: #9f123955;
     }
 
-    .full {
-      width: 100%;
-    }
+    .full { width: 100%; }
 
     .login-wrap {
       max-width: 500px;
@@ -240,10 +219,7 @@
       font-size: 23px;
     }
 
-    .login-wrap h2 {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
+    .login-wrap h2 { font-size: 28px; margin-bottom: 10px; }
 
     .login-wrap p {
       color: var(--muted);
@@ -251,9 +227,7 @@
       font-size: 14px;
     }
 
-    .login-wrap .btn {
-      margin-top: 15px;
-    }
+    .login-wrap .btn { margin-top: 15px; }
 
     .dropzone {
       display: block;
@@ -271,10 +245,7 @@
       border-color: #c084fc;
     }
 
-    .upload-icon {
-      font-size: 32px;
-      margin-bottom: 10px;
-    }
+    .upload-icon { font-size: 32px; margin-bottom: 10px; }
 
     .file-name {
       margin-top: 12px;
@@ -283,11 +254,7 @@
       overflow-wrap: anywhere;
     }
 
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 15px;
-    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 15px; }
 
     .tab {
       flex: 1;
@@ -339,10 +306,7 @@
       margin-bottom: 9px;
     }
 
-    .stat strong {
-      font-size: 18px;
-      overflow-wrap: anywhere;
-    }
+    .stat strong { font-size: 18px; overflow-wrap: anywhere; }
 
     .setting-row {
       display: flex;
@@ -353,13 +317,8 @@
       font-size: 13px;
     }
 
-    .setting-row:last-child {
-      border-bottom: none;
-    }
-
-    .setting-row span {
-      color: var(--muted);
-    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row span { color: var(--muted); }
 
     .notice {
       display: none;
@@ -371,9 +330,7 @@
       overflow-wrap: anywhere;
     }
 
-    .notice.show {
-      display: block;
-    }
+    .notice.show { display: block; }
 
     .notice.error {
       background: #88133733;
@@ -398,15 +355,9 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .history-item:last-child {
-      border-bottom: none;
-    }
+    .history-item:last-child { border-bottom: none; }
 
-    .history-name {
-      font-size: 13px;
-      font-weight: bold;
-      overflow-wrap: anywhere;
-    }
+    .history-name { font-size: 13px; font-weight: bold; overflow-wrap: anywhere; }
 
     .history-meta {
       color: var(--muted);
@@ -423,9 +374,7 @@
       color: #d8b4fe;
     }
 
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
     .key-input-row {
       display: flex;
@@ -433,14 +382,8 @@
       align-items: stretch;
     }
 
-    .key-input-row input {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .key-input-row .btn {
-      flex-shrink: 0;
-    }
+    .key-input-row input { flex: 1; min-width: 0; }
+    .key-input-row .btn { flex-shrink: 0; }
 
     .connection-status {
       display: flex;
@@ -469,15 +412,9 @@
       box-shadow: 0 0 10px #4ade8055;
     }
 
-    .status-dot.disconnected {
-      background: var(--red);
-    }
+    .status-dot.disconnected { background: var(--red); }
 
-    .small-text {
-      font-size: 11px;
-      line-height: 1.7;
-      color: var(--muted);
-    }
+    .small-text { font-size: 11px; line-height: 1.7; color: var(--muted); }
 
     footer {
       text-align: center;
@@ -487,80 +424,26 @@
     }
 
     @media (max-width: 760px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .container {
-        width: 94%;
-        padding-top: 17px;
-      }
-
-      .panel {
-        padding: 18px;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .stat {
-        padding: 13px;
-      }
-
-      header {
-        margin-bottom: 24px;
-      }
-
-      .brand h1 {
-        font-size: 16px;
-      }
-
-      .header-actions {
-        text-align: right;
-      }
-
-      .header-actions .btn {
-        padding: 9px;
-        font-size: 11px;
-      }
-
-      .badge {
-        font-size: 10px;
-        padding: 7px 9px;
-      }
+      .grid { grid-template-columns: 1fr; }
+      .container { width: 94%; padding-top: 17px; }
+      .panel { padding: 18px; }
+      .stats { grid-template-columns: 1fr; }
+      .stat { padding: 13px; }
+      header { margin-bottom: 24px; }
+      .brand h1 { font-size: 16px; }
+      .header-actions { text-align: right; }
+      .header-actions .btn { padding: 9px; font-size: 11px; }
+      .badge { font-size: 10px; padding: 7px 9px; }
     }
 
     @media (max-width: 390px) {
-      .brand {
-        gap: 8px;
-      }
-
-      .brand h1 {
-        font-size: 14px;
-      }
-
-      .brand p {
-        font-size: 10px;
-      }
-
-      .brand .logo {
-        width: 39px;
-        height: 39px;
-        font-size: 14px;
-      }
-
-      .header-actions .badge {
-        display: none;
-      }
-
-      .key-input-row {
-        flex-direction: column;
-      }
-
-      .key-input-row .btn {
-        width: 100%;
-      }
+      .brand { gap: 8px; }
+      .brand h1 { font-size: 14px; }
+      .brand p { font-size: 10px; }
+      .brand .logo { width: 39px; height: 39px; font-size: 14px; }
+      .header-actions .badge { display: none; }
+      .key-input-row { flex-direction: column; }
+      .key-input-row .btn { width: 100%; }
     }
   </style>
 </head>
@@ -587,7 +470,6 @@
     <main id="loginScreen" class="login-wrap panel">
       <div class="logo">ZDC</div>
       <span class="badge">ZDC COMMUNITY</span>
-
       <h2>Ubah Audio, <span class="gradient-text">Lebih Praktis.</span></h2>
 
       <p>
@@ -612,9 +494,7 @@
       <section class="hero">
         <span class="badge">AUDIO WORKSPACE</span>
         <h2>Selamat datang di <span class="gradient-text">ZDC Studio.</span></h2>
-        <p>
-          Siapkan audio untuk proyek Roblox kamu dari satu dashboard.
-        </p>
+        <p>Siapkan audio untuk proyek Roblox kamu dari satu dashboard.</p>
       </section>
 
       <section class="stats">
@@ -622,12 +502,10 @@
           <span>AKUN DISCORD</span>
           <strong id="userName">Memuat...</strong>
         </div>
-
         <div class="stat">
           <span>STATUS AKUN</span>
           <strong id="userRole">Memuat...</strong>
         </div>
-
         <div class="stat">
           <span>SISA KUOTA HARI INI</span>
           <strong id="quotaValue">Memuat...</strong>
@@ -637,10 +515,9 @@
       <div id="globalNotice" class="notice"></div>
 
       <section class="grid">
-
         <div class="stack">
 
-          <!-- PENGATURAN ROBLOX API KEY -->
+          <!-- HUBUNGKAN ROBLOX -->
           <div class="panel">
             <h3 class="section-title">🔐 Hubungkan Roblox</h3>
 
@@ -682,18 +559,19 @@
                 type="submit"
                 class="btn btn-primary full"
                 style="margin-top:14px"
-              >
-                💾 Simpan API Key
-              </button>
+              >💾 Simpan API Key</button>
             </form>
 
-            <button
-              id="checkRobloxKey"
-              type="button"
-              class="btn full"
-              style="margin-top:10px"
-            >
+            <button id="checkRobloxKey" type="button"
+              class="btn full" style="margin-top:10px">
               🔄 Periksa Status
+            </button>
+
+            <!-- TOMBOL HAPUS: HANYA MUNCUL JIKA API KEY TERSIMPAN -->
+            <button id="deleteRobloxKey" type="button"
+              class="btn btn-danger full hidden"
+              style="margin-top:10px">
+              🗑️ Hapus API Key
             </button>
 
             <div id="robloxKeyNotice" class="notice" aria-live="polite"></div>
@@ -729,12 +607,8 @@
               <input id="audioName" type="text"
                 maxlength="100" placeholder="Contoh: ZDC Music">
 
-              <input
-                id="audioFile"
-                type="file"
-                accept=".mp3,.wav,.ogg,.flac,.m4a,.aac,.webm"
-                hidden
-              >
+              <input id="audioFile" type="file"
+                accept=".mp3,.wav,.ogg,.flac,.m4a,.aac,.webm" hidden>
 
               <label for="audioFile" class="dropzone">
                 <div class="upload-icon">📁</div>
@@ -758,7 +632,6 @@
               <label for="youtubeUrl">Tautan YouTube</label>
               <input id="youtubeUrl" type="url"
                 placeholder="https://www.youtube.com/...">
-
               <div class="info-box">
                 Fitur tautan YouTube belum aktif. Gunakan file audio
                 yang kamu miliki atau yang diizinkan untuk digunakan.
@@ -769,7 +642,6 @@
               <label for="soundcloudUrl">Tautan SoundCloud</label>
               <input id="soundcloudUrl" type="url"
                 placeholder="https://soundcloud.com/...">
-
               <div class="info-box">
                 Fitur tautan SoundCloud belum aktif. Gunakan file audio
                 yang kamu miliki atau yang diizinkan untuk digunakan.
@@ -816,39 +688,17 @@
               <p class="muted">Memuat riwayat...</p>
             </div>
           </div>
-
         </div>
 
         <div class="stack">
-
-          <!-- PENGATURAN AUDIO -->
           <div class="panel">
             <h3 class="section-title">⚙️ Pengaturan Audio</h3>
 
-            <div class="setting-row">
-              <span>Volume</span>
-              <strong>-8 dB</strong>
-            </div>
-
-            <div class="setting-row">
-              <span>Kecepatan</span>
-              <strong>2,3×</strong>
-            </div>
-
-            <div class="setting-row">
-              <span>Format keluaran</span>
-              <strong>MP3</strong>
-            </div>
-
-            <div class="setting-row">
-              <span>Bitrate keluaran</span>
-              <strong>192 kbps</strong>
-            </div>
-
-            <div class="setting-row">
-              <span>Batas file masukan</span>
-              <strong>5 MB</strong>
-            </div>
+            <div class="setting-row"><span>Volume</span><strong>-8 dB</strong></div>
+            <div class="setting-row"><span>Kecepatan</span><strong>2,3×</strong></div>
+            <div class="setting-row"><span>Format keluaran</span><strong>MP3</strong></div>
+            <div class="setting-row"><span>Bitrate keluaran</span><strong>192 kbps</strong></div>
+            <div class="setting-row"><span>Batas file masukan</span><strong>5 MB</strong></div>
 
             <div class="info-box">
               Pengaturan ini ditampilkan sebagai informasi.
@@ -857,24 +707,11 @@
             </div>
           </div>
 
-          <!-- PAKET -->
           <div class="panel">
             <h3 class="section-title">👑 Paket Akun</h3>
-
-            <div class="setting-row">
-              <span>GRATIS</span>
-              <strong>2 kali/hari</strong>
-            </div>
-
-            <div class="setting-row">
-              <span>PREMIUM</span>
-              <strong>Tanpa batas</strong>
-            </div>
-
-            <div class="setting-row">
-              <span>OWNER</span>
-              <strong>Tanpa batas</strong>
-            </div>
+            <div class="setting-row"><span>GRATIS</span><strong>2 kali/hari</strong></div>
+            <div class="setting-row"><span>PREMIUM</span><strong>Tanpa batas</strong></div>
+            <div class="setting-row"><span>OWNER</span><strong>Tanpa batas</strong></div>
 
             <p class="muted">
               Kuota ditampilkan berdasarkan data yang dikirim server.
@@ -882,12 +719,9 @@
               dan diverifikasi di server.
             </p>
 
-            <button id="refreshQuota" class="btn full">
-              Perbarui Kuota
-            </button>
+            <button id="refreshQuota" class="btn full">Perbarui Kuota</button>
           </div>
 
-          <!-- KEAMANAN -->
           <div class="panel">
             <h3 class="section-title">🛡️ Keamanan Akun</h3>
             <p class="muted">
@@ -899,32 +733,26 @@
               kepada orang lain.
             </p>
           </div>
-
         </div>
-
       </section>
     </main>
 
-    <footer>
-      ZDC Studio Converter · Dibuat untuk komunitas ZDC
-    </footer>
-
+    <footer>ZDC Studio Converter · Dibuat untuk komunitas ZDC</footer>
   </div>
 
   <script type="module">
     import { convertAudio } from "./audio-processor.js";
 
     const $ = (id) => document.getElementById(id);
-
     const MAX_AUDIO_SIZE = 5 * 1024 * 1024;
 
     let currentUser = null;
-    let currentUsage = null;
     let selectedSource = "file";
     let selectedFile = null;
     let downloadUrl = null;
     let isConverting = false;
     let isSavingKey = false;
+    let isDeletingKey = false;
     let keyConfigured = false;
 
     function showNotice(element, message, type = "info") {
@@ -942,9 +770,7 @@
         credentials: "same-origin",
         cache: "no-store",
         ...options,
-        headers: {
-          ...(options.headers || {})
-        }
+        headers: { ...(options.headers || {}) }
       });
 
       let data;
@@ -973,8 +799,6 @@
     }
 
     function renderUsage(data) {
-      currentUsage = data;
-
       $("userRole").textContent = normalizeRole(data.role);
 
       if (data.unlimited || data.remaining === null) {
@@ -994,7 +818,6 @@
     async function loadUsage() {
       try {
         const data = await apiRequest("/api/usage");
-
         renderUsage(data);
 
         if (data.message) {
@@ -1011,7 +834,6 @@
       if (!value) return "-";
 
       const date = new Date(value);
-
       if (Number.isNaN(date.getTime())) return "-";
 
       return date.toLocaleString("id-ID", {
@@ -1026,7 +848,6 @@
 
       try {
         const data = await apiRequest("/api/history");
-
         list.replaceChildren();
 
         if (!Array.isArray(data.history) || data.history.length === 0) {
@@ -1072,30 +893,29 @@
         const message = document.createElement("p");
         message.className = "muted";
         message.textContent = error.message;
-
         list.appendChild(message);
       }
     }
 
     // =========================================
-    // STATUS ROBLOX API KEY
+    // STATUS API KEY DAN TOMBOL HAPUS
     // =========================================
 
     function renderRobloxStatus(configured, message) {
       keyConfigured = configured;
 
-      const dot = $("robloxStatusDot");
-      const text = $("robloxStatusText");
+      $("robloxStatusDot").classList.remove("connected", "disconnected");
+      $("robloxStatusDot").classList.add(
+        configured ? "connected" : "disconnected"
+      );
 
-      dot.classList.remove("connected", "disconnected");
+      $("robloxStatusText").textContent = message ||
+        (configured
+          ? "API Key sudah tersimpan secara terenkripsi."
+          : "API Key belum tersimpan.");
 
-      if (configured) {
-        dot.classList.add("connected");
-        text.textContent = message || "API Key sudah tersimpan.";
-      } else {
-        dot.classList.add("disconnected");
-        text.textContent = message || "API Key belum tersimpan.";
-      }
+      // Tombol hapus hanya ditampilkan jika API Key tersimpan.
+      $("deleteRobloxKey").classList.toggle("hidden", !configured);
     }
 
     async function loadRobloxKeyStatus(showResult = false) {
@@ -1123,17 +943,13 @@
 
         return data.configured === true;
       } catch (error) {
-        renderRobloxStatus(
-          false,
-          "Status belum dapat diverifikasi."
-        );
+        // Jangan menyimpulkan key tidak ada saat server gagal.
+        $("robloxStatusDot").classList.remove("connected", "disconnected");
+        $("robloxStatusText").textContent = "Status belum dapat diverifikasi.";
+        $("deleteRobloxKey").classList.add("hidden");
 
         if (showResult) {
-          showNotice(
-            $("robloxKeyNotice"),
-            error.message,
-            "error"
-          );
+          showNotice($("robloxKeyNotice"), error.message, "error");
         }
 
         return null;
@@ -1143,88 +959,66 @@
     }
 
     // =========================================
-    // SIMPAN ROBLOX API KEY
+    // SIMPAN API KEY
     // =========================================
 
     $("robloxKeyForm").addEventListener("submit", async (event) => {
       event.preventDefault();
-
-      if (isSavingKey) return;
+      if (isSavingKey || isDeletingKey) return;
 
       const input = $("robloxApiKey");
       const button = $("saveRobloxKey");
       const apiKey = input.value;
 
       if (!apiKey || apiKey.length < 10 || apiKey.length > 4096) {
-        showNotice(
-          $("robloxKeyNotice"),
-          "API Key tidak valid. Periksa kembali isinya.",
-          "error"
-        );
+        showNotice($("robloxKeyNotice"),
+          "API Key tidak valid. Periksa kembali isinya.", "error");
         return;
       }
 
       if (apiKey.trim() !== apiKey || /[\r\n]/.test(apiKey)) {
-        showNotice(
-          $("robloxKeyNotice"),
+        showNotice($("robloxKeyNotice"),
           "API Key mengandung spasi di awal/akhir atau karakter baris baru.",
-          "error"
-        );
+          "error");
         return;
       }
 
       isSavingKey = true;
       button.disabled = true;
       $("checkRobloxKey").disabled = true;
+      $("deleteRobloxKey").disabled = true;
       input.disabled = true;
       $("toggleKeyVisibility").disabled = true;
-
       button.textContent = "Menyimpan...";
 
-      showNotice(
-        $("robloxKeyNotice"),
-        "Mengirim API Key ke backend untuk dienkripsi dan disimpan...",
-        "info"
-      );
+      showNotice($("robloxKeyNotice"),
+        "Mengirim API Key ke backend untuk dienkripsi dan disimpan...", "info");
 
       try {
         const data = await apiRequest("/api/roblox-key", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            apiKey
-          })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ apiKey })
         });
 
-        // Kosongkan input agar rahasia tidak tertinggal di formulir.
         input.value = "";
         input.type = "password";
         $("toggleKeyVisibility").textContent = "Lihat";
 
-        renderRobloxStatus(
-          data.configured === true,
-          "API Key sudah tersimpan secara terenkripsi."
-        );
+        renderRobloxStatus(true,
+          "API Key sudah tersimpan secara terenkripsi.");
 
-        showNotice(
-          $("robloxKeyNotice"),
-          data.message || "API Key berhasil disimpan.",
-          "success"
-        );
+        showNotice($("robloxKeyNotice"),
+          data.message || "API Key berhasil disimpan.", "success");
 
       } catch (error) {
-        // Jangan mencetak API Key ke konsol atau pesan kesalahan.
-        showNotice(
-          $("robloxKeyNotice"),
-          "Gagal menyimpan API Key: " + error.message,
-          "error"
-        );
+        showNotice($("robloxKeyNotice"),
+          "Gagal menyimpan API Key: " + error.message, "error");
       } finally {
         isSavingKey = false;
         button.disabled = false;
         $("checkRobloxKey").disabled = false;
+        $("deleteRobloxKey").disabled = false;
         input.disabled = false;
         $("toggleKeyVisibility").disabled = false;
         button.textContent = "💾 Simpan API Key";
@@ -1232,8 +1026,67 @@
     });
 
     // =========================================
-    // TAMPILKAN / SEMBUNYIKAN API KEY
+    // HAPUS API KEY
     // =========================================
+
+    $("deleteRobloxKey").addEventListener("click", async () => {
+      if (isDeletingKey || isSavingKey) return;
+
+      if (!keyConfigured) {
+        showNotice($("robloxKeyNotice"),
+          "Tidak ada API Key tersimpan yang bisa dihapus.", "info");
+        return;
+      }
+
+      const confirmed = window.confirm(
+        "Yakin ingin menghapus API Key Roblox yang tersimpan?\n\n" +
+        "Tindakan ini memutus penyimpanan kredensial di ZDC Studio Converter. " +
+        "Tindakan ini tidak menghapus aset yang sudah diunggah ke Roblox."
+      );
+
+      if (!confirmed) return;
+
+      isDeletingKey = true;
+
+      const button = $("deleteRobloxKey");
+      button.disabled = true;
+      $("saveRobloxKey").disabled = true;
+      $("checkRobloxKey").disabled = true;
+
+      button.textContent = "Menghapus...";
+
+      showNotice($("robloxKeyNotice"),
+        "Menghapus API Key dari database...", "info");
+
+      try {
+        const data = await apiRequest("/api/roblox-key", {
+          method: "DELETE"
+        });
+
+        renderRobloxStatus(false, "API Key belum tersimpan.");
+
+        showNotice($("robloxKeyNotice"),
+          data.message || "API Key berhasil dihapus.", "success");
+
+        $("robloxApiKey").value = "";
+        $("robloxApiKey").type = "password";
+        $("toggleKeyVisibility").textContent = "Lihat";
+
+      } catch (error) {
+        showNotice($("robloxKeyNotice"),
+          "Gagal menghapus API Key: " + error.message, "error");
+
+        // Periksa ulang status server jika permintaan gagal.
+        await loadRobloxKeyStatus(false);
+
+      } finally {
+        isDeletingKey = false;
+        button.textContent = "🗑️ Hapus API Key";
+        $("saveRobloxKey").disabled = false;
+        $("checkRobloxKey").disabled = false;
+        button.disabled = !keyConfigured;
+      }
+    });
 
     $("toggleKeyVisibility").addEventListener("click", () => {
       const input = $("robloxApiKey");
@@ -1266,7 +1119,6 @@
         }
 
         currentUser = data.user || {};
-
         setLoggedIn(true);
 
         $("userName").textContent =
@@ -1287,18 +1139,13 @@
           loadHistory(),
           loadRobloxKeyStatus(false)
         ]);
-
       } catch (error) {
         console.error("Inisialisasi gagal:", error.message);
-
         currentUser = null;
         setLoggedIn(false);
 
-        showNotice(
-          $("loginNotice"),
-          "Tidak dapat memeriksa sesi login. Coba masuk kembali.",
-          "error"
-        );
+        showNotice($("loginNotice"),
+          "Tidak dapat memeriksa sesi login. Coba masuk kembali.", "error");
       }
     }
 
@@ -1341,17 +1188,9 @@
           tab.classList.toggle("active", tab === button);
         });
 
-        $("fileSource").classList.toggle(
-          "hidden", selectedSource !== "file"
-        );
-
-        $("youtubeSource").classList.toggle(
-          "hidden", selectedSource !== "youtube"
-        );
-
-        $("soundcloudSource").classList.toggle(
-          "hidden", selectedSource !== "soundcloud"
-        );
+        $("fileSource").classList.toggle("hidden", selectedSource !== "file");
+        $("youtubeSource").classList.toggle("hidden", selectedSource !== "youtube");
+        $("soundcloudSource").classList.toggle("hidden", selectedSource !== "soundcloud");
 
         updatePrepareButton();
         hideNotice($("prepareNotice"));
@@ -1375,12 +1214,7 @@
       }
 
       if (file.size > MAX_AUDIO_SIZE) {
-        showNotice(
-          $("prepareNotice"),
-          "File terlalu besar! Maksimal 5 MB.",
-          "error"
-        );
-
+        showNotice($("prepareNotice"), "File terlalu besar! Maksimal 5 MB.", "error");
         this.value = "";
         $("fileName").textContent = "Belum ada file dipilih";
         updatePrepareButton();
@@ -1388,12 +1222,9 @@
       }
 
       if (!/\.(mp3|wav|ogg|flac|m4a|aac|webm)$/i.test(file.name)) {
-        showNotice(
-          $("prepareNotice"),
+        showNotice($("prepareNotice"),
           "Format tidak didukung. Gunakan MP3, WAV, OGG, FLAC, M4A, AAC, atau WEBM.",
-          "error"
-        );
-
+          "error");
         this.value = "";
         $("fileName").textContent = "Belum ada file dipilih";
         updatePrepareButton();
@@ -1401,10 +1232,8 @@
       }
 
       selectedFile = file;
-
       $("fileName").textContent =
-        file.name + " · " +
-        (file.size / (1024 * 1024)).toFixed(2) + " MB";
+        file.name + " · " + (file.size / (1024 * 1024)).toFixed(2) + " MB";
 
       updatePrepareButton();
     });
@@ -1414,11 +1243,8 @@
     $("creatorType").addEventListener("change", updatePrepareButton);
 
     function updatePrepareButton() {
-      const hasCreatorId =
-        /^\d+$/.test($("creatorId").value.trim());
-
-      const hasName =
-        $("audioName").value.trim().length > 0;
+      const hasCreatorId = /^\d+$/.test($("creatorId").value.trim());
+      const hasName = $("audioName").value.trim().length > 0;
 
       $("prepareButton").disabled =
         isConverting ||
@@ -1435,29 +1261,19 @@
 
     $("prepareButton").addEventListener("click", async () => {
       if (!currentUser) {
-        showNotice(
-          $("prepareNotice"),
-          "Silakan login Discord terlebih dahulu.",
-          "error"
-        );
+        showNotice($("prepareNotice"),
+          "Silakan login Discord terlebih dahulu.", "error");
         return;
       }
 
       if (selectedSource !== "file" || !selectedFile) {
-        showNotice(
-          $("prepareNotice"),
-          "Pilih file audio terlebih dahulu.",
-          "error"
-        );
+        showNotice($("prepareNotice"),
+          "Pilih file audio terlebih dahulu.", "error");
         return;
       }
 
       if (selectedFile.size > MAX_AUDIO_SIZE) {
-        showNotice(
-          $("prepareNotice"),
-          "Ukuran audio maksimal 5 MB.",
-          "error"
-        );
+        showNotice($("prepareNotice"), "Ukuran audio maksimal 5 MB.", "error");
         return;
       }
 
@@ -1474,21 +1290,14 @@
       hideNotice($("prepareNotice"));
 
       try {
-        showNotice(
-          $("prepareNotice"),
-          "Memulai mesin konversi audio...",
-          "info"
-        );
+        showNotice($("prepareNotice"),
+          "Memulai mesin konversi audio...", "info");
 
         const result = await convertAudio(selectedFile, {
           onProgress(message) {
-            showNotice(
-              $("prepareNotice"),
-              typeof message === "string"
-                ? message
-                : "Sedang memproses audio...",
-              "info"
-            );
+            showNotice($("prepareNotice"),
+              typeof message === "string" ? message : "Sedang memproses audio...",
+              "info");
           }
         });
 
@@ -1496,10 +1305,7 @@
           throw new Error("Hasil konversi kosong.");
         }
 
-        if (downloadUrl) {
-          URL.revokeObjectURL(downloadUrl);
-        }
-
+        if (downloadUrl) URL.revokeObjectURL(downloadUrl);
         downloadUrl = URL.createObjectURL(result.blob);
 
         const safeName = audioName
@@ -1507,8 +1313,8 @@
           .slice(0, 100);
 
         const downloadName = (safeName || "ZDC Audio") + ".mp3";
-
         const downloadLink = document.createElement("a");
+
         downloadLink.href = downloadUrl;
         downloadLink.download = downloadName;
         downloadLink.className = "btn btn-primary full";
@@ -1536,13 +1342,9 @@
       } catch (error) {
         console.error("Konversi gagal:", error.message);
 
-        showNotice(
-          $("prepareNotice"),
-          "KONVERSI GAGAL:\n" +
-          (error?.message || String(error)),
-          "error"
-        );
-
+        showNotice($("prepareNotice"),
+          "KONVERSI GAGAL:\n" + (error?.message || String(error)),
+          "error");
       } finally {
         isConverting = false;
 
@@ -1556,9 +1358,7 @@
     });
 
     window.addEventListener("beforeunload", () => {
-      if (downloadUrl) {
-        URL.revokeObjectURL(downloadUrl);
-      }
+      if (downloadUrl) URL.revokeObjectURL(downloadUrl);
     });
 
     const params = new URLSearchParams(window.location.search);

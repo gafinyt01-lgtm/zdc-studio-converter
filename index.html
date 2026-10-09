@@ -1,40 +1,66 @@
-<!DOCTYPE html><html lang="id">
+<!DOCTYPE html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#090713">  <title>ZDC Studio Converter</title>  <style>
+  <meta name="theme-color" content="#090713">
+  <meta name="description" content="ZDC Studio Audio Converter">
+  <title>ZDC Studio Converter</title>
+
+  <style>
     :root {
       --bg: #090713;
-      --panel: #141020;
-      --panel2: #1c1530;
+      --panel: #120e1e;
+      --panel2: #191329;
       --purple: #a855f7;
       --purple2: #7c3aed;
       --text: #f5f3ff;
       --muted: #aaa2bd;
       --border: rgba(192, 132, 252, 0.18);
       --green: #4ade80;
+      --red: #fb7185;
+      --radius: 18px;
     }
 
     * {
       box-sizing: border-box;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Arial, Helvetica, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(ellipse at top, #291447 0%, transparent 48%),
+        radial-gradient(ellipse at 50% -15%, #402064 0%, transparent 48%),
         var(--bg);
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    button {
+    button,
+    input,
+    select {
       font: inherit;
     }
 
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
     .container {
-      width: min(100% - 32px, 1000px);
+      width: min(1120px, calc(100% - 32px));
       margin: auto;
     }
 
@@ -43,7 +69,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      padding: 24px 0;
+      padding: 20px 0;
       border-bottom: 1px solid var(--border);
     }
 
@@ -51,24 +77,26 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      min-width: 0;
     }
 
     .logo {
       display: grid;
       place-items: center;
+      flex-shrink: 0;
       width: 46px;
       height: 46px;
       border-radius: 14px;
       background: linear-gradient(135deg, #c084fc, #6d28d9);
-      font-size: 20px;
+      box-shadow: 0 0 28px #9333ea30;
+      font-size: 21px;
       font-weight: 900;
-      box-shadow: 0 0 25px #9333ea35;
     }
 
     .brand h2 {
       margin: 0;
-      font-size: 17px;
-      letter-spacing: 0.5px;
+      font-size: 16px;
+      letter-spacing: 1px;
     }
 
     .brand p {
@@ -78,22 +106,22 @@
     }
 
     .badge {
+      padding: 8px 12px;
       border: 1px solid var(--border);
       border-radius: 30px;
-      padding: 8px 12px;
       color: #d8b4fe;
-      background: #a855f711;
-      font-size: 11px;
+      background: #a855f710;
+      font-size: 10px;
+      letter-spacing: 0.6px;
       white-space: nowrap;
     }
 
     main {
-      padding: 65px 0 40px;
+      padding: 35px 0 55px;
     }
 
     .hero {
-      max-width: 700px;
-      margin: 0 auto 38px;
+      padding: 36px 0 28px;
       text-align: center;
     }
 
@@ -104,50 +132,49 @@
       border-radius: 30px;
       color: #d8b4fe;
       background: #a855f710;
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 1px;
     }
 
     .hero h1 {
-      margin: 22px 0 14px;
-      font-size: clamp(34px, 7vw, 58px);
-      line-height: 1.08;
+      margin: 20px 0 12px;
+      font-size: clamp(34px, 6vw, 53px);
+      line-height: 1.1;
       letter-spacing: -1.5px;
     }
 
     .gradient {
       color: #c084fc;
-      background: linear-gradient(90deg, #c084fc, #818cf8);
+      background: linear-gradient(90deg, #d8b4fe, #818cf8);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .hero > p {
-      max-width: 540px;
-      margin: 0 auto;
+    .hero p {
+      max-width: 580px;
+      margin: auto;
       color: var(--muted);
+      font-size: 14px;
       line-height: 1.8;
-      font-size: 15px;
     }
 
     .card {
-      width: min(100%, 540px);
-      margin: auto;
-      padding: 28px;
+      min-width: 0;
+      padding: 23px;
       border: 1px solid var(--border);
-      border-radius: 22px;
-      background: linear-gradient(145deg, #191226, #100c1b);
-      box-shadow: 0 20px 70px #00000035;
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, #191329, #100c1a);
+      box-shadow: 0 18px 55px #00000020;
     }
 
     .card h2 {
-      margin: 0 0 10px;
-      font-size: 21px;
+      margin: 0 0 8px;
+      font-size: 19px;
     }
 
     .description {
-      margin: 0 0 22px;
+      margin: 0 0 20px;
       color: var(--muted);
       font-size: 13px;
       line-height: 1.7;
@@ -157,19 +184,18 @@
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      margin-bottom: 20px;
       padding: 13px;
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: #a855f709;
+      background: #a855f708;
       color: #ddd6fe;
-      font-size: 13px;
-      line-height: 1.6;
+      font-size: 12px;
+      line-height: 1.7;
       overflow-wrap: anywhere;
     }
 
     .status-dot {
-      flex: 0 0 8px;
+      flex-shrink: 0;
       width: 8px;
       height: 8px;
       margin-top: 5px;
@@ -182,23 +208,24 @@
     }
 
     .status.error .status-dot {
-      background: #fb7185;
+      background: var(--red);
     }
 
     .button {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 10px;
+      gap: 9px;
       width: 100%;
-      min-height: 49px;
-      padding: 13px 18px;
+      min-height: 47px;
+      padding: 12px 16px;
       border: 0;
-      border-radius: 12px;
+      border-radius: 11px;
       color: white;
       background: linear-gradient(100deg, #9333ea, #6d28d9);
       font-weight: 700;
-      cursor: pointer;
+      font-size: 12px;
+      letter-spacing: 0.3px;
       transition: transform 0.2s, opacity 0.2s;
     }
 
@@ -206,114 +233,373 @@
       transform: translateY(-2px);
     }
 
-    .button:disabled {
-      cursor: wait;
-      opacity: 0.65;
-    }
-
     .button.secondary {
-      margin-top: 10px;
       border: 1px solid var(--border);
       color: #e9d5ff;
       background: #a855f711;
     }
 
-    .discord-icon {
-      font-size: 20px;
+    .button.tertiary {
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: transparent;
     }
 
     .small-note {
-      margin: 16px 0 0;
+      margin: 15px 0 0;
       color: var(--muted);
       font-size: 11px;
       line-height: 1.7;
+    }
+
+    .center {
       text-align: center;
     }
 
-    .features {
+    .login-card {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .login-card .button {
+      margin-top: 17px;
+    }
+
+    .account-name {
+      margin: 14px 0;
+      font-size: 17px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .account-label {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .dashboard-top {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 42px;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      margin-bottom: 18px;
     }
 
-    .feature {
-      padding: 19px;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: #ffffff04;
+    .welcome-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 170px;
+      background:
+        radial-gradient(ellipse at 100% 0%, #7025ac35, transparent 65%),
+        linear-gradient(145deg, #191329, #100c1a);
     }
 
-    .feature-icon {
-      margin-bottom: 12px;
+    .welcome-card h2 {
       font-size: 24px;
     }
 
-    .feature h3 {
-      margin: 0 0 8px;
-      font-size: 14px;
+    .welcome-card p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
     }
 
-    .feature p {
+    .role-badge {
+      display: inline-flex;
+      align-self: flex-start;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 16px;
+      padding: 7px 11px;
+      border: 1px solid #a855f740;
+      border-radius: 30px;
+      color: #e9d5ff;
+      background: #a855f711;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+    }
+
+    .quota-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .quota-card h3 {
+      margin: 0 0 17px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .quota-number {
+      margin-bottom: 10px;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .quota-number span {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .progress {
+      height: 7px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #ffffff0d;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #a855f7, #818cf8);
+      transition: width 0.3s;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .section-heading {
+      margin: 30px 0 15px;
+    }
+
+    .section-heading h2 {
+      margin: 0 0 7px;
+      font-size: 20px;
+    }
+
+    .section-heading p {
       margin: 0;
       color: var(--muted);
       font-size: 12px;
       line-height: 1.7;
     }
 
-    .account {
-      display: none;
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid var(--border);
+    .converter-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(250px, 0.8fr);
+      align-items: start;
+      gap: 18px;
     }
 
-    .account.visible {
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
       display: block;
-    }
-
-    .account-label {
-      margin-bottom: 8px;
-      color: var(--muted);
+      margin-bottom: 9px;
       font-size: 12px;
+      font-weight: 700;
     }
 
-    .username {
-      margin-bottom: 16px;
-      font-size: 18px;
+    .field-hint {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .input,
+    .select {
+      width: 100%;
+      min-height: 46px;
+      padding: 12px 13px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      color: var(--text);
+      background: #0d0916;
+      font-size: 13px;
+    }
+
+    .input:focus,
+    .select:focus {
+      border-color: #a855f7;
+      box-shadow: 0 0 0 3px #a855f718;
+    }
+
+    .select option {
+      color: var(--text);
+      background: #120e1e;
+    }
+
+    .source-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 19px;
+    }
+
+    .source-tab {
+      min-width: 0;
+      min-height: 44px;
+      padding: 9px 5px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      background: #ffffff04;
+      font-size: 11px;
       font-weight: 700;
+    }
+
+    .source-tab.active {
+      border-color: #a855f780;
+      color: #e9d5ff;
+      background: #a855f719;
+    }
+
+    .dropzone {
+      display: grid;
+      place-items: center;
+      min-height: 155px;
+      padding: 20px;
+      border: 1px dashed #a855f76b;
+      border-radius: 13px;
+      background: #a855f708;
+      text-align: center;
+    }
+
+    .dropzone-icon {
+      margin-bottom: 9px;
+      font-size: 28px;
+    }
+
+    .dropzone strong {
+      font-size: 13px;
+    }
+
+    .dropzone p {
+      margin: 7px 0 13px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .file-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: #e9d5ff;
+      background: #a855f711;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .file-name {
+      margin-top: 10px;
+      color: var(--green);
+      font-size: 11px;
       overflow-wrap: anywhere;
     }
 
-    footer {
-      padding: 24px 0 30px;
-      border-top: 1px solid var(--border);
+    .settings-list {
+      display: grid;
+      gap: 12px;
+      margin: 17px 0 20px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: #ffffff03;
+    }
+
+    .setting-row span {
       color: var(--muted);
       font-size: 12px;
-      text-align: center;
+    }
+
+    .setting-row strong {
+      color: #e9d5ff;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .notice {
+      margin-top: 15px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      background: #ffffff03;
+      font-size: 11px;
       line-height: 1.8;
     }
 
-    @media (max-width: 600px) {
-      header {
-        align-items: flex-start;
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .feature {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: #ffffff03;
+    }
+
+    .feature-icon {
+      margin-bottom: 12px;
+      font-size: 23px;
+    }
+
+    .feature h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    footer {
+      padding: 25px 0 32px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.9;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .dashboard-top,
+      .converter-layout {
+        grid-template-columns: 1fr;
       }
 
-      .badge {
-        font-size: 10px;
-      }
-
-      main {
-        padding-top: 42px;
-      }
-
-      .card {
-        padding: 22px 18px;
+      .quota-card {
+        min-height: 150px;
       }
 
       .features {
         grid-template-columns: 1fr;
-        margin-top: 25px;
       }
 
       .feature {
@@ -326,142 +612,543 @@
         margin: 0;
       }
     }
-  </style></head><body>
-  <div class="container"><header>
-  <div class="brand">
-    <div class="logo">Z</div>
-    <div>
-      <h2>ZDC STUDIO</h2>
-      <p>Audio Converter</p>
-    </div>
+
+    @media (max-width: 480px) {
+      .container {
+        width: calc(100% - 24px);
+      }
+
+      header {
+        padding: 16px 0;
+      }
+
+      .logo {
+        width: 41px;
+        height: 41px;
+      }
+
+      .brand h2 {
+        font-size: 13px;
+      }
+
+      .brand p {
+        font-size: 10px;
+      }
+
+      .badge {
+        padding: 7px 8px;
+        font-size: 9px;
+      }
+
+      main {
+        padding-top: 20px;
+      }
+
+      .hero {
+        padding: 25px 0 22px;
+      }
+
+      .hero h1 {
+        font-size: 35px;
+      }
+
+      .hero p {
+        font-size: 12px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .source-tabs {
+        gap: 5px;
+      }
+
+      .source-tab {
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <header>
+      <div class="brand">
+        <div class="logo">Z</div>
+        <div>
+          <h2>ZDC STUDIO</h2>
+          <p>Audio Converter</p>
+        </div>
+      </div>
+
+      <div class="badge">✦ ZDC COMMUNITY</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">ZDC STUDIO TOOLS</div>
+
+        <h1>
+          Your Audio.<br>
+          <span class="gradient">Your Creativity.</span>
+        </h1>
+
+        <p>
+          Platform pengolahan audio untuk kreator Roblox.
+          Masuk menggunakan Discord untuk mengakses dashboard ZDC Studio.
+        </p>
+      </section>
+
+      <!-- AREA LOGIN -->
+      <section id="loginSection" class="card login-card">
+        <h2>Akses akun kamu</h2>
+
+        <p class="description">
+          Hubungkan Discord dan pastikan kamu sudah bergabung
+          dengan server ZDC Community.
+        </p>
+
+        <div id="statusMessage" class="status">
+          <span class="status-dot"></span>
+          <span id="statusText">Memeriksa status login...</span>
+        </div>
+
+        <button id="discordLogin" class="button" type="button">
+          ◈ LOGIN DENGAN DISCORD
+        </button>
+
+        <p class="small-note center">
+          Login dilakukan melalui Discord. Jangan bagikan informasi
+          rahasia akun kepada siapa pun.
+        </p>
+      </section>
+
+      <!-- DASHBOARD SETELAH LOGIN -->
+      <section id="dashboardSection" hidden>
+
+        <div class="dashboard-top">
+          <article class="card welcome-card">
+            <div id="roleBadge" class="role-badge">
+              ✦ MEMERIKSA AKUN
+            </div>
+
+            <h2>Halo, <span id="welcomeName">Kreator</span> 👋</h2>
+
+            <p>
+              Selamat datang di dashboard ZDC Studio.
+              Siapkan audio kamu dan kelola prosesnya dari sini.
+            </p>
+          </article>
+
+          <article class="card quota-card">
+            <h3>KUOTA KONVERSI HARI INI</h3>
+
+            <div id="quotaNumber" class="quota-number">
+              Memuat...
+            </div>
+
+            <div class="progress">
+              <div id="quotaProgress" class="progress-fill"></div>
+            </div>
+
+            <p id="quotaDescription" class="small-note">
+              Mengambil informasi kuota...
+            </p>
+
+            <button id="refreshQuota" class="button secondary"
+              type="button" style="margin-top: 14px">
+              ↻ PERBARUI KUOTA
+            </button>
+          </article>
+        </div>
+
+        <div class="section-heading">
+          <h2>Audio Converter</h2>
+          <p>
+            Siapkan sumber audio dan tujuan unggahan Roblox.
+            Pengolahan audio akan diaktifkan setelah backend selesai.
+          </p>
+        </div>
+
+        <div class="converter-layout">
+
+          <article class="card">
+            <h2>🎧 Sumber audio</h2>
+
+            <p class="description">
+              Pilih sumber audio yang ingin kamu siapkan.
+            </p>
+
+            <div class="source-tabs">
+              <button class="source-tab active"
+                data-source="file" type="button">
+                📁 BERKAS AUDIO
+              </button>
+
+              <button class="source-tab"
+                data-source="youtube" type="button">
+                ▶ YOUTUBE
+              </button>
+
+              <button class="source-tab"
+                data-source="soundcloud" type="button">
+                ☁ SOUNDCLOUD
+              </button>
+            </div>
+
+            <div id="fileSource">
+              <div class="field">
+                <label>Pilih berkas audio</label>
+
+                <div class="dropzone">
+                  <div>
+                    <div class="dropzone-icon">🎵</div>
+
+                    <strong>Pilih audio dari perangkat</strong>
+
+                    <p>
+                      Format MP3, WAV, OGG, atau FLAC.<br>
+                      Batas ukuran dan durasi akan divalidasi server.
+                    </p>
+
+                    <label for="audioFile" class="file-button">
+                      PILIH BERKAS
+                    </label>
+
+                    <input
+                      id="audioFile"
+                      type="file"
+                      accept=".mp3,.wav,.ogg,.flac,audio/mpeg,audio/wav,audio/ogg,audio/flac"
+                      hidden
+                    >
+
+                    <div id="fileName" class="file-name">
+                      Belum ada berkas dipilih
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="linkSource" hidden>
+              <div class="field">
+                <label for="audioUrl">Tautan audio</label>
+
+                <input
+                  id="audioUrl"
+                  class="input"
+                  type="url"
+                  placeholder="https://..."
+                  autocomplete="url"
+                >
+
+                <span class="field-hint">
+                  Gunakan sumber yang mengizinkan pengunduhan atau
+                  pemrosesan audio. Dukungan sumber akan divalidasi
+                  pada tahap backend.
+                </span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="assetName">Nama audio Roblox</label>
+
+              <input
+                id="assetName"
+                class="input"
+                type="text"
+                maxlength="100"
+                placeholder="Contoh: ZDC Audio 001"
+              >
+
+              <span class="field-hint">
+                Nama ini akan digunakan sebagai nama aset jika
+                unggahan Roblox sudah diaktifkan.
+              </span>
+            </div>
+
+            <button id="prepareButton" class="button" type="button">
+              🔒 FITUR KONVERSI BELUM AKTIF
+            </button>
+
+            <div class="notice">
+              <strong>Status:</strong> antarmuka sudah tersedia,
+              tetapi pemrosesan dan pengunggahan belum terhubung.
+              Tombol ini tidak akan mengirim atau mengonversi audio.
+            </div>
+          </article>
+
+          <div>
+            <article class="card">
+              <h2>⚙️ Pengaturan audio</h2>
+
+              <p class="description">
+                Setiap audio akan menggunakan pengaturan otomatis
+                yang telah ditentukan.
+              </p>
+
+              <div class="settings-list">
+                <div class="setting-row">
+                  <span>Volume / gain</span>
+                  <strong>-8 dB</strong>
+                </div>
+
+                <div class="setting-row">
+                  <span>Kecepatan</span>
+                  <strong>2,3×</strong>
+                </div>
+
+                <div class="setting-row">
+                  <span>Format keluaran</span>
+                  <strong>MP3</strong>
+                </div>
+              </div>
+
+              <div class="notice">
+                Pengaturan ini masih berupa pratinjau.
+                Hasil sebenarnya akan diproses di server setelah
+                mesin pengolah audio terpasang.
+              </div>
+            </article>
+
+            <article class="card" style="margin-top: 16px">
+              <h2>🎮 Tujuan Roblox</h2>
+
+              <p class="description">
+                Tentukan tempat tujuan aset audio kamu.
+              </p>
+
+              <div class="field">
+                <label for="creatorType">Jenis pemilik aset</label>
+
+                <select id="creatorType" class="select">
+                  <option value="user">Akun pribadi</option>
+                  <option value="group">Grup Roblox</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="creatorId">ID akun atau grup</label>
+
+                <input
+                  id="creatorId"
+                  class="input"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="30"
+                  placeholder="Masukkan ID Roblox"
+                >
+
+                <span class="field-hint">
+                  Pilihan ini belum dikirim ke Roblox.
+                  Hak akses akun atau grup akan diperiksa server.
+                </span>
+              </div>
+
+              <button id="robloxSetupButton"
+                class="button secondary" type="button">
+                🔐 PENGATURAN API ROBLOX
+              </button>
+
+              <div class="notice">
+                API key Roblox belum diminta atau disimpan melalui
+                halaman ini. Nanti pengelolaannya dilakukan secara
+                aman melalui backend.
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <h2>Pengelolaan akun</h2>
+          <p>Informasi sesi Discord kamu.</p>
+        </div>
+
+        <article class="card">
+          <div class="account-label">LOGIN SEBAGAI</div>
+          <div id="discordUsername" class="account-name">-</div>
+
+          <div id="accountStatus" class="status">
+            <span class="status-dot"></span>
+            <span id="accountStatusText">Sesi sedang diperiksa.</span>
+          </div>
+
+          <button id="logoutButton"
+            class="button secondary"
+            type="button"
+            style="margin-top: 15px">
+            LOGOUT
+          </button>
+        </article>
+      </section>
+
+      <section class="features">
+        <article class="feature">
+          <div class="feature-icon">🎧</div>
+          <div>
+            <h3>Pengolahan Audio</h3>
+            <p>
+              Rencana pemrosesan otomatis dengan gain -8 dB
+              dan kecepatan 2,3×.
+            </p>
+          </div>
+        </article>
+
+        <article class="feature">
+          <div class="feature-icon">🔐</div>
+          <div>
+            <h3>Akses Discord</h3>
+            <p>
+              Login menggunakan Discord dengan pemeriksaan
+              keanggotaan ZDC Community.
+            </p>
+          </div>
+        </article>
+
+        <article class="feature">
+          <div class="feature-icon">⚡</div>
+          <div>
+            <h3>Akses Bertingkat</h3>
+            <p>
+              Kuota FREE, akses PREMIUM, dan akses OWNER
+              mengikuti aturan pada backend.
+            </p>
+          </div>
+        </article>
+      </section>
+
+    </main>
+
+    <footer>
+      <strong>ZDC STUDIO</strong><br>
+      Dibuat untuk komunitas ZDC Community.<br>
+      © 2026 ZDC Studio.
+    </footer>
+
   </div>
 
-  <div class="badge">ZDC COMMUNITY</div>
-</header>
+  <script>
+    const $ = (id) => document.getElementById(id);
 
-<main>
-  <section class="hero">
-    <div class="eyebrow">✦ ZDC STUDIO TOOLS ✦</div>
+    const loginSection = $("loginSection");
+    const dashboardSection = $("dashboardSection");
+    const loginButton = $("discordLogin");
+    const logoutButton = $("logoutButton");
+    const statusMessage = $("statusMessage");
+    const statusText = $("statusText");
 
-    <h1>
-      Your Audio.<br>
-      <span class="gradient">Your Creativity.</span>
-    </h1>
+    let currentUser = null;
+    let currentRole = "FREE";
 
-    <p>
-      Platform pengolahan audio untuk kebutuhan kreatifmu.
-      Login menggunakan Discord untuk mengakses layanan ZDC Studio.
-    </p>
-  </section>
-
-  <section class="card">
-    <h2>Akses akun kamu</h2>
-
-    <p class="description">
-      Hubungkan akun Discord dan pastikan kamu sudah bergabung
-      dengan server ZDC Community.
-    </p>
-
-    <div id="statusMessage" class="status">
-      <span class="status-dot"></span>
-      <span id="statusText">Memeriksa status login...</span>
-    </div>
-
-    <button
-      id="discordLogin"
-      class="button"
-      type="button"
-      onclick="authorizeDiscord()"
-    >
-      <span class="discord-icon">◈</span>
-      LOGIN DENGAN DISCORD
-    </button>
-
-    <div id="accountPanel" class="account">
-      <div class="account-label">LOGIN SEBAGAI</div>
-      <div id="discordUsername" class="username">-</div>
-
-      <button
-        id="logoutButton"
-        class="button secondary"
-        type="button"
-      >
-        LOGOUT
-      </button>
-    </div>
-
-    <p class="small-note">
-      Jangan bagikan informasi rahasia akunmu kepada siapa pun.
-      Login dilakukan melalui Discord.
-    </p>
-  </section>
-
-  <section class="features">
-    <article class="feature">
-      <div class="feature-icon">🎧</div>
-      <div>
-        <h3>Pengolahan Audio</h3>
-        <p>
-          Antarmuka untuk layanan pengolahan audio.
-          Fitur pemrosesan akan diaktifkan setelah backend tersedia.
-        </p>
-      </div>
-    </article>
-
-    <article class="feature">
-      <div class="feature-icon">🔐</div>
-      <div>
-        <h3>Akses Discord</h3>
-        <p>
-          Sistem login memeriksa keanggotaan ZDC Community
-          sebelum memberikan akses.
-        </p>
-      </div>
-    </article>
-
-    <article class="feature">
-      <div class="feature-icon">⚡</div>
-      <div>
-        <h3>Sistem Kuota</h3>
-        <p>
-          Dukungan akun gratis dan premium akan dihubungkan
-          setelah sistem kuota backend selesai dibuat.
-        </p>
-      </div>
-    </article>
-  </section>
-</main>
-
-<footer>
-  <strong>ZDC STUDIO</strong><br>
-  Dibuat untuk komunitas ZDC Community.<br>
-  © 2026 ZDC Studio. 
-</footer>
-
-  </div>  <script>
-    const loginButton = document.getElementById("discordLogin");
-    const logoutButton = document.getElementById("logoutButton");
-    const accountPanel = document.getElementById("accountPanel");
-    const usernameElement = document.getElementById("discordUsername");
-    const statusMessage = document.getElementById("statusMessage");
-    const statusText = document.getElementById("statusText");
-
-    function showStatus(message, type = "") {
+    function showLoginStatus(message, type = "") {
       statusMessage.className = "status" + (type ? " " + type : "");
       statusText.textContent = message;
+    }
+
+    function showAccountStatus(message, type = "") {
+      $("accountStatus").className =
+        "status" + (type ? " " + type : "");
+
+      $("accountStatusText").textContent = message;
     }
 
     function authorizeDiscord() {
       loginButton.disabled = true;
       loginButton.textContent = "MENGHUBUNGKAN DISCORD...";
-      showStatus("Mengalihkan kamu ke halaman otorisasi Discord.");
+
+      showLoginStatus("Mengalihkan ke halaman otorisasi Discord.");
 
       window.location.assign("/api/auth/discord");
     }
 
+    function displayRole(role) {
+      const knownRoles = ["OWNER", "PREMIUM", "FREE"];
+
+      currentRole = knownRoles.includes(role) ? role : "FREE";
+
+      const labels = {
+        OWNER: "✦ OWNER",
+        PREMIUM: "✦ PREMIUM",
+        FREE: "✦ FREE MEMBER"
+      };
+
+      $("roleBadge").textContent = labels[currentRole];
+    }
+
+    async function loadQuota() {
+      const quotaNumber = $("quotaNumber");
+      const quotaDescription = $("quotaDescription");
+      const progress = $("quotaProgress");
+      const refreshButton = $("refreshQuota");
+
+      refreshButton.disabled = true;
+      quotaNumber.textContent = "Memuat...";
+      quotaDescription.textContent = "Mengambil informasi dari server.";
+      progress.style.width = "0%";
+
+      try {
+        const response = await fetch("/api/usage", {
+          method: "GET",
+          cache: "no-store",
+          credentials: "same-origin"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.ok !== true) {
+          throw new Error(data.message || "Kuota gagal dimuat.");
+        }
+
+        if (data.role) {
+          displayRole(data.role);
+        }
+
+        if (data.unlimited) {
+          quotaNumber.innerHTML = '∞ <span>Tanpa batas</span>';
+          quotaDescription.textContent =
+            "Akses tanpa batas aktif untuk akun kamu.";
+
+          progress.style.width = "100%";
+        } else {
+          const used = Number(data.used);
+          const limit = Number(data.dailyLimit);
+
+          if (
+            !Number.isFinite(used) ||
+            !Number.isFinite(limit) ||
+            limit <= 0 ||
+            used < 0
+          ) {
+            throw new Error("Informasi kuota tidak valid.");
+          }
+
+          const remaining = Math.max(0, limit - used);
+          const percentage = Math.min(100, used / limit * 100);
+
+          quotaNumber.innerHTML =
+            `${remaining} <span>/ ${limit} tersisa</span>`;
+
+          quotaDescription.textContent =
+            `${used} dari ${limit} penggunaan telah tercatat hari ini.`;
+
+          progress.style.width = `${percentage}%`;
+        }
+      } catch (error) {
+        quotaNumber.textContent = "--";
+        quotaDescription.textContent =
+          "Kuota belum dapat dimuat. Coba perbarui kembali.";
+
+        console.error("Gagal memuat kuota.");
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
+
     async function checkSession() {
       loginButton.disabled = true;
-      showStatus("Memeriksa sesi login...");
+      showLoginStatus("Memeriksa sesi login...");
 
       try {
         const response = await fetch("/api/me", {
@@ -477,29 +1164,44 @@
         }
 
         if (data.loggedIn && data.user) {
-          usernameElement.textContent = data.user.username;
-          accountPanel.classList.add("visible");
-          loginButton.hidden = true;
+          currentUser = data.user;
 
-          showStatus(
-            "Login berhasil. Sesi akun kamu terdeteksi.",
+          loginSection.hidden = true;
+          dashboardSection.hidden = false;
+
+          $("welcomeName").textContent = data.user.username;
+          $("discordUsername").textContent = data.user.username;
+
+          displayRole(data.role || "FREE");
+
+          showAccountStatus(
+            "Login berhasil. Sesi Discord kamu aktif.",
             "success"
           );
-        } else {
-          accountPanel.classList.remove("visible");
-          loginButton.hidden = false;
-          loginButton.disabled = false;
-          loginButton.innerHTML =
-            '<span class="discord-icon">◈</span> LOGIN DENGAN DISCORD';
 
-          showStatus("Kamu belum login. Silakan hubungkan Discord.");
+          await loadQuota();
+        } else {
+          currentUser = null;
+
+          dashboardSection.hidden = true;
+          loginSection.hidden = false;
+
+          loginButton.disabled = false;
+          loginButton.textContent = "◈ LOGIN DENGAN DISCORD";
+
+          showLoginStatus(
+            "Kamu belum login. Silakan hubungkan Discord."
+          );
         }
       } catch (error) {
-        loginButton.hidden = false;
-        loginButton.disabled = false;
+        loginSection.hidden = false;
+        dashboardSection.hidden = true;
 
-        showStatus(
-          "Tidak dapat memeriksa sesi. Muat ulang halaman atau coba lagi.",
+        loginButton.disabled = false;
+        loginButton.textContent = "◈ LOGIN DENGAN DISCORD";
+
+        showLoginStatus(
+          "Sesi belum dapat diperiksa. Muat ulang halaman dan coba lagi.",
           "error"
         );
       }
@@ -512,31 +1214,96 @@
       try {
         const response = await fetch("/api/logout", {
           method: "POST",
-          credentials: "same-origin"
+          credentials: "same-origin",
+          cache: "no-store"
         });
 
         if (!response.ok) {
           throw new Error("Logout gagal.");
         }
 
-        accountPanel.classList.remove("visible");
-        loginButton.hidden = false;
+        currentUser = null;
+
+        dashboardSection.hidden = true;
+        loginSection.hidden = false;
+
         loginButton.disabled = false;
-        loginButton.innerHTML =
-          '<span class="discord-icon">◈</span> LOGIN DENGAN DISCORD';
+        loginButton.textContent = "◈ LOGIN DENGAN DISCORD";
 
-        showStatus("Kamu berhasil logout.");
-
+        showLoginStatus("Kamu berhasil logout.", "success");
       } catch (error) {
-        showStatus("Logout gagal. Silakan coba lagi.", "error");
+        showAccountStatus(
+          "Logout gagal. Silakan coba lagi.",
+          "error"
+        );
       } finally {
         logoutButton.disabled = false;
         logoutButton.textContent = "LOGOUT";
       }
     }
 
-    logoutButton.addEventListener("click", logoutDiscord);
+    // Pemilihan sumber hanya mengubah tampilan.
+    // Belum ada audio yang dikirim ke server.
+    document.querySelectorAll(".source-tab").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".source-tab").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+
+        button.classList.add("active");
+
+        const source = button.dataset.source;
+        const isFile = source === "file";
+
+        $("fileSource").hidden = !isFile;
+        $("linkSource").hidden = isFile;
+
+        $("audioUrl").value = "";
+
+        if (!isFile) {
+          $("audioUrl").placeholder =
+            source === "youtube"
+              ? "https://www.youtube.com/..."
+              : "https://soundcloud.com/...";
+        }
+      });
+    });
+
+    $("audioFile").addEventListener("change", () => {
+      const file = $("audioFile").files[0];
+
+      $("fileName").textContent = file
+        ? `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`
+        : "Belum ada berkas dipilih";
+    });
+
+    $("creatorType").addEventListener("change", () => {
+      $("creatorId").placeholder =
+        $("creatorType").value === "group"
+          ? "Masukkan ID grup Roblox"
+          : "Masukkan ID akun Roblox";
+    });
+
+    $("refreshQuota").addEventListener("click", loadQuota);
+    $("discordLogin").addEventListener("click", authorizeDiscord);
+    $("logoutButton").addEventListener("click", logoutDiscord);
+
+    // Sengaja belum melakukan konversi.
+    $("prepareButton").addEventListener("click", () => {
+      alert(
+        "Fitur konversi belum aktif. Backend pengolahan audio " +
+        "dan unggahan Roblox akan dipasang pada tahap berikutnya."
+      );
+    });
+
+    $("robloxSetupButton").addEventListener("click", () => {
+      alert(
+        "Pengaturan API Roblox akan dibuat pada tahap berikutnya. " +
+        "Jangan masukkan API key di halaman ini."
+      );
+    });
 
     checkSession();
-  </script></body>
+  </script>
+</body>
 </html>

@@ -80,7 +80,8 @@
 
     #status {
       overflow-wrap: anywhere;
-      font-size: 14px;
+      white-space: pre-wrap;
+      font-size: 13px;
     }
 
     .warning {
@@ -94,7 +95,8 @@
     <h1>ZDC Audio Engine</h1>
 
     <p>
-      Tes konversi audio sebelum dipasang ke dashboard utama.
+      Tes mesin konversi audio ZDC sebelum dipasang
+      ke dashboard utama.
     </p>
 
     <p>
@@ -114,7 +116,7 @@
     </button>
 
     <p id="status" role="status" aria-live="polite">
-      Pilih berkas audio maksimal 5 MB.
+      Pilih audio maksimal 5 MB.
     </p>
 
     <a id="downloadLink" download="zdc-output.mp3">
@@ -138,6 +140,22 @@
     let currentFile = null;
     let downloadUrl = null;
 
+    function showError(error) {
+      console.error("ZDC Audio Engine:", error);
+
+      const detail =
+        error?.stack ||
+        error?.message ||
+        String(error) ||
+        "Penyebab error tidak diketahui.";
+
+      status.textContent =
+        "KONVERSI GAGAL:\n" + detail;
+
+      status.style.color = "#ff8080";
+      status.style.whiteSpace = "pre-wrap";
+    }
+
     fileInput.addEventListener("change", () => {
       currentFile = fileInput.files?.[0] || null;
 
@@ -146,24 +164,39 @@
         downloadUrl = null;
       }
 
+      downloadLink.removeAttribute("href");
       downloadLink.style.display = "none";
+      status.style.color = "#c5bacf";
 
       if (!currentFile) {
         convertButton.disabled = true;
-        status.textContent = "Pilih berkas audio terlebih dahulu.";
+        status.textContent = "Pilih audio terlebih dahulu.";
         return;
       }
 
       if (currentFile.size > 5 * 1024 * 1024) {
         convertButton.disabled = true;
-        status.textContent = "Berkas terlalu besar. Maksimal 5 MB.";
+        status.textContent =
+          "Berkas terlalu besar. Maksimal 5 MB.";
+        return;
+      }
+
+      const allowedExtensions =
+        /\.(mp3|wav|ogg|flac|m4a|aac|webm)$/i;
+
+      if (!allowedExtensions.test(currentFile.name)) {
+        convertButton.disabled = true;
+        status.textContent =
+          "Format tidak didukung. Pilih MP3, WAV, OGG, FLAC, M4A, AAC, atau WEBM.";
         return;
       }
 
       convertButton.disabled = false;
+
       status.textContent =
-        `Berkas dipilih: ${currentFile.name} ` +
-        `(${(currentFile.size / 1024 / 1024).toFixed(2)} MB).`;
+        `Audio dipilih: ${currentFile.name}\n` +
+        `Ukuran: ${(currentFile.size / 1024 / 1024).toFixed(2)} MB\n` +
+        "Tekan Mulai Konversi untuk melanjutkan.";
     });
 
     convertButton.addEventListener("click", async () => {
@@ -172,37 +205,55 @@
       convertButton.disabled = true;
       fileInput.disabled = true;
       downloadLink.style.display = "none";
+      status.style.color = "#c5bacf";
 
       try {
-        status.textContent = "Memuat mesin konversi...";
+        status.textContent =
+          "Memulai mesin konversi...\n" +
+          "Pertama kali mungkin membutuhkan waktu untuk memuat FFmpeg.";
 
         const result = await convertAudio(currentFile, {
           onProgress(percent) {
             status.textContent =
-              `Sedang memproses audio: ${percent}%`;
+              `Mesin konversi berjalan: ${percent}%\n` +
+              "Jangan tutup halaman selama proses berlangsung.";
           }
         });
+
+        if (!result?.blob || result.blob.size === 0) {
+          throw new Error("Berkas hasil konversi kosong.");
+        }
+
+        if (downloadUrl) {
+          URL.revokeObjectURL(downloadUrl);
+        }
 
         downloadUrl = URL.createObjectURL(result.blob);
 
         downloadLink.href = downloadUrl;
-        downloadLink.download = result.filename;
+        downloadLink.download = result.filename || "zdc-output.mp3";
         downloadLink.style.display = "block";
 
+        status.style.color = "#80ffb0";
         status.textContent =
-          `Berhasil! Ukuran MP3: ` +
-          `${(result.size / 1024 / 1024).toFixed(2)} MB.`;
+          "KONVERSI BERHASIL!\n" +
+          `Nama: ${result.filename}\n` +
+          `Ukuran hasil: ${(result.size / 1024 / 1024).toFixed(2)} MB\n` +
+          "Tekan tombol Unduh Hasil MP3.";
       } catch (error) {
-        console.error("ZDC Audio Engine:", error);
-
-        status.textContent =
-          "Konversi gagal: " +
-          (error?.message || "Terjadi kesalahan.") +
-          " Coba lagi atau periksa konsol browser.";
+        showError(error);
       } finally {
         convertButton.disabled = false;
         fileInput.disabled = false;
       }
+    });
+
+    window.addEventListener("error", (event) => {
+      console.error("Kesalahan browser:", event.error || event.message);
+    });
+
+    window.addEventListener("unhandledrejection", (event) => {
+      console.error("Kesalahan proses:", event.reason);
     });
 
     window.addEventListener("beforeunload", () => {

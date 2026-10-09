@@ -1,126 +1,121 @@
-const FFMPEG_VERSION = "0.12.10";
-const FFMPEG_BASE_URL =
-  `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${FFMPEG_VERSION}/dist/umd`;
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { toBlobURL } from "@ffmpeg/util";
+
+const FFMPEG_CORE_URL =
+"https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
 
 let ffmpegInstance = null;
 let ffmpegLoading = null;
 
 export async function loadAudioProcessor(onProgress = () => {}) {
-  if (ffmpegInstance) return ffmpegInstance;
+if (ffmpegInstance) return ffmpegInstance;
+if (ffmpegLoading) return ffmpegLoading;
 
-  if (ffmpegLoading) return ffmpegLoading;
+ffmpegLoading = (async () => {
+const ffmpeg = new FFmpeg();
 
-  ffmpegLoading = (async () => {
-    const { FFmpeg } = await import(
-      "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js"
-    );
+ffmpeg.on("progress", ({ progress }) => {
+  onProgress(
+    Math.max(0, Math.min(100, Math.round(progress * 100)))
+  );
+});
 
-    const { toBlobURL } = await import(
-      "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/dist/esm/index.js"
-    );
+const coreURL = await toBlobURL(
+  `${FFMPEG_CORE_URL}/ffmpeg-core.js`,
+  "text/javascript"
+);
 
-    const ffmpeg = new FFmpeg();
+const wasmURL = await toBlobURL(
+  `${FFMPEG_CORE_URL}/ffmpeg-core.wasm`,
+  "application/wasm"
+);
 
-    ffmpeg.on("progress", ({ progress }) => {
-      onProgress(Math.max(0, Math.min(100, Math.round(progress * 100))));
-    });
+await ffmpeg.load({ coreURL, wasmURL });
 
-    const coreURL = await toBlobURL(
-      `${FFMPEG_BASE_URL}/ffmpeg-core.js`,
-      "text/javascript"
-    );
+ffmpegInstance = ffmpeg;
+return ffmpeg;
 
-    const wasmURL = await toBlobURL(
-      `${FFMPEG_BASE_URL}/ffmpeg-core.wasm`,
-      "application/wasm"
-    );
+})();
 
-    await ffmpeg.load({ coreURL, wasmURL });
-
-    ffmpegInstance = ffmpeg;
-    return ffmpeg;
-  })();
-
-  try {
-    return await ffmpegLoading;
-  } catch (error) {
-    ffmpegLoading = null;
-    throw error;
-  }
+try {
+return await ffmpegLoading;
+} catch (error) {
+ffmpegLoading = null;
+throw error;
+}
 }
 
 export async function convertAudio(
-  file,
-  { onProgress = () => {} } = {}
+file,
+{ onProgress = () => {} } = {}
 ) {
-  if (!(file instanceof File)) {
-    throw new Error("Pilih berkas audio terlebih dahulu.");
-  }
+if (!(file instanceof File)) {
+throw new Error("Pilih berkas audio terlebih dahulu.");
+}
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error("Ukuran audio maksimal 5 MB.");
-  }
+if (file.size > MAX_FILE_SIZE) {
+throw new Error("Ukuran audio maksimal 5 MB.");
+}
 
-  const allowedExtensions = /\.(mp3|wav|ogg|flac|m4a|aac|webm)$/i;
+if (!/.(mp3|wav|ogg|flac|m4a|aac|webm)$/i.test(file.name)) {
+throw new Error("Format audio belum didukung.");
+}
 
-  if (!allowedExtensions.test(file.name)) {
-    throw new Error("Format audio belum didukung.");
-  }
+const ffmpeg = await loadAudioProcessor(onProgress);
 
-  const ffmpeg = await loadAudioProcessor(onProgress);
+const extension =
+file.name.match(/.([a-z0-9]+)$/i)?.[1]?.toLowerCase() || "mp3";
 
-  const inputExtension =
-    file.name.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase() || "mp3";
+const inputName = "input.${extension}";
+const outputName = "zdc-output.mp3";
 
-  const inputName = `input.${inputExtension}`;
-  const outputName = "zdc-output.mp3";
+try {
+await ffmpeg.writeFile(
+inputName,
+new Uint8Array(await file.arrayBuffer())
+);
 
-  try {
-    await ffmpeg.writeFile(
-      inputName,
-      new Uint8Array(await file.arrayBuffer())
-    );
+onProgress(0);
 
-    onProgress(0);
+await ffmpeg.exec([
+  "-y",
+  "-i", inputName,
+  "-vn",
+  "-af", "volume=-8dB,atempo=2.0,atempo=1.15",
+  "-b:a", "192k",
+  "-codec:a", "libmp3lame",
+  outputName
+]);
 
-    await ffmpeg.exec([
-      "-y",
-      "-i", inputName,
-      "-vn",
-      "-af", "volume=-8dB,atempo=2.0,atempo=1.15",
-      "-b:a", "192k",
-      "-codec:a", "libmp3lame",
-      outputName
-    ]);
+const outputData = await ffmpeg.readFile(outputName);
 
-    const outputData = await ffmpeg.readFile(outputName);
+if (!(outputData instanceof Uint8Array) || outputData.length === 0) {
+  throw new Error("Hasil konversi kosong.");
+}
 
-    if (!(outputData instanceof Uint8Array) || outputData.length === 0) {
-      throw new Error("Hasil konversi kosong.");
-    }
+const outputBlob = new Blob([outputData], {
+  type: "audio/mpeg"
+});
 
-    const outputBlob = new Blob([outputData], {
-      type: "audio/mpeg"
-    });
+onProgress(100);
 
-    onProgress(100);
+return {
+  blob: outputBlob,
+  filename:
+    file.name.replace(/\.[^.]+$/, "").slice(0, 100) + ".mp3",
+  size: outputBlob.size,
+  type: "audio/mpeg"
+};
 
-    return {
-      blob: outputBlob,
-      filename:
-        file.name.replace(/\.[^.]+$/, "").slice(0, 100) + ".mp3",
-      size: outputBlob.size,
-      type: "audio/mpeg"
-    };
-  } finally {
-    for (const name of [inputName, outputName]) {
-      try {
-        await ffmpeg.deleteFile(name);
-      } catch {
-        // Berkas mungkin belum sempat dibuat.
-      }
-    }
-  }
+} finally {
+for (const name of [inputName, outputName]) {
+try {
+await ffmpeg.deleteFile(name);
+} catch {
+// Abaikan jika berkas belum dibuat.
+}
+}
+}
 }

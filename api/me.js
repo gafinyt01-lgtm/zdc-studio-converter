@@ -1,239 +1,140 @@
 import crypto from "node:crypto";
-import { getPool } from "./db.js";
 
 function parseCookies(req) {
-    const cookies = {};
-    const header = req.headers.cookie || "";
+  const cookies = {};
 
-    for (const item of header.split(";")) {
-        const index = item.indexOf("=");
+  for (const item of (req.headers.cookie || "").split(";")) {
+    const index = item.indexOf("=");
 
-        if (index < 0) continue;
+    if (index < 0) continue;
 
-        const key = item.slice(0, index).trim();
-        const value = item.slice(index + 1).trim();
-
-        try {
-            cookies[key] = decodeURIComponent(value);
-        } catch {
-            cookies[key] = "";
-        }
-    }
-
-    return cookies;
-}
-
-function verifySession(req) {
-    const secret = process.env.SESSION_SECRET;
-
-    if (!secret) {
-        throw new Error("SESSION_SECRET belum diatur.");
-    }
-
-    const token = parseCookies(req).zdc_session;
-
-    if (!token) return null;
+    const key = item.slice(0, index).trim();
+    const value = item.slice(index + 1).trim();
 
     try {
-        const parts = token.split(".");
-
-        if (parts.length !== 2) return null;
-
-        const [payload, signature] = parts;
-
-        const expectedSignature = crypto
-            .createHmac("sha256", secret)
-            .update(payload)
-            .digest("base64url");
-
-        const received = Buffer.from(signature);
-        const expected = Buffer.from(expectedSignature);
-
-        if (
-            received.length !== expected.length ||
-            !crypto.timingSafeEqual(received, expected)
-        ) {
-            return null;
-        }
-
-        const user = JSON.parse(
-            Buffer.from(payload, "base64url").toString("utf8")
-        );
-
-        if (
-            !user.id ||
-            !user.username ||
-            !Number.isFinite(user.exp) ||
-            user.exp <= Date.now()
-        ) {
-            return null;
-        }
-
-        return user;
+      cookies[key] = decodeURIComponent(value);
     } catch {
-        return null;
+      cookies[key] = "";
     }
+  }
+
+  return cookies;
 }
 
-function encryptApiKey(apiKey) {
-    const secret = process.env.ENCRYPTION_KEY;
+function parseIds(value) {
+  if (!value || value.trim().toLowerCase() === "none") {
+    return [];
+  }
 
-    if (!secret) {
-        throw new Error("ENCRYPTION_KEY belum diatur.");
+  return value
+    .split(",")
+    .map(id => id.trim())
+    .filter(id => /^\d+$/.test(id));
+}
+
+function getRole(userId) {
+  const owners = parseIds(process.env.ZDC_OWNER_IDS);
+  const premiumUsers = parseIds(process.env.ZDC_PREMIUM_IDS);
+
+  if (owners.includes(userId)) {
+    return "OWNER";
+  }
+
+  if (premiumUsers.includes(userId)) {
+    return "PREMIUM";
+  }
+
+  return "FREE";
+}
+
+export default function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+
+    return res.status(405).json({
+      loggedIn: false,
+      message: "Method not allowed."
+    });
+  }
+
+  const secret = process.env.SESSION_SECRET;
+
+  if (!secret) {
+    return res.status(500).json({
+      loggedIn: false,
+      message: "Konfigurasi sesi belum tersedia."
+    });
+  }
+
+  const cookies = parseCookies(req);
+  const token = cookies.zdc_session;
+
+  if (!token) {
+    return res.status(200).json({
+      loggedIn: false
+    });
+  }
+
+  try {
+    const parts = token.split(".");
+
+    if (parts.length !== 2) {
+      return res.status(200).json({
+        loggedIn: false
+      });
     }
 
-    const encryptionKey = Buffer.from(secret, "base64");
+    const [payload, signature] = parts;
 
-    if (encryptionKey.length !== 32) {
-        throw new Error(
-            "ENCRYPTION_KEY harus berupa 32 byte dalam format Base64."
-        );
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(payload)
+      .digest("base64url");
+
+    const received = Buffer.from(signature);
+    const expected = Buffer.from(expectedSignature);
+
+    if (
+      received.length !== expected.length ||
+      !crypto.timingSafeEqual(received, expected)
+    ) {
+      return res.status(200).json({
+        loggedIn: false
+      });
     }
 
-    const iv = crypto.randomBytes(12);
-
-    const cipher = crypto.createCipheriv(
-        "aes-256-gcm",
-        encryptionKey,
-        iv
+    const user = JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8")
     );
 
-    const encrypted = Buffer.concat([
-        cipher.update(apiKey, "utf8"),
-        cipher.final()
-    ]);
-
-    const authTag = cipher.getAuthTag();
-
-    return [
-        "v1",
-        iv.toString("hex"),
-        authTag.toString("hex"),
-        encrypted.toString("hex")
-    ].join(":");
-}
-
-export default async function handler(req, res) {
-    res.setHeader("Cache-Control", "no-store");
-
-    if (!["GET", "POST"].includes(req.method)) {
-        res.setHeader("Allow", "GET, POST");
-
-        return res.status(405).json({
-            ok: false,
-            message: "Metode tidak diizinkan."
-        });
+    if (
+      !user.id ||
+      !user.username ||
+      !Number.isFinite(user.exp) ||
+      user.exp <= Date.now()
+    ) {
+      return res.status(200).json({
+        loggedIn: false
+      });
     }
 
-    let session;
+    const role = getRole(user.id);
 
-    try {
-        session = verifySession(req);
-    } catch (error) {
-        console.error("Konfigurasi sesi bermasalah:", error.message);
-
-        return res.status(500).json({
-            ok: false,
-            message: "Konfigurasi sesi belum tersedia."
-        });
-    }
-
-    if (!session) {
-        return res.status(401).json({
-            ok: false,
-            message: "Silakan login melalui Discord terlebih dahulu."
-        });
-    }
-
-    try {
-        const pool = getPool();
-
-        if (req.method === "GET") {
-            const result = await pool.query(
-                `SELECT 1
-                 FROM roblox_credentials
-                 WHERE discord_id = $1
-                 LIMIT 1`,
-                [session.id]
-            );
-
-            return res.status(200).json({
-                ok: true,
-                configured: result.rowCount > 0
-            });
-        }
-
-        if (typeof req.body === "string") {
-            try {
-                req.body = JSON.parse(req.body);
-            } catch {
-                return res.status(400).json({
-                    ok: false,
-                    message: "Format permintaan tidak valid."
-                });
-            }
-        }
-
-        const apiKey = req.body?.apiKey;
-
-        if (
-            typeof apiKey !== "string" ||
-            apiKey.length < 10 ||
-            apiKey.length > 4096 ||
-            apiKey.trim() !== apiKey ||
-            /[\r\n]/.test(apiKey)
-        ) {
-            return res.status(400).json({
-                ok: false,
-                message: "API Key tidak valid."
-            });
-        }
-
-        const encryptedApiKey = encryptApiKey(apiKey);
-
-        await pool.query(
-            `INSERT INTO users (
-                discord_id,
-                username,
-                role
-            )
-            VALUES ($1, $2, 'FREE')
-            ON CONFLICT (discord_id)
-            DO UPDATE SET
-                username = EXCLUDED.username,
-                updated_at = NOW()`,
-            [session.id, session.username]
-        );
-
-        await pool.query(
-            `INSERT INTO roblox_credentials (
-                discord_id,
-                encrypted_api_key,
-                created_at,
-                updated_at
-            )
-            VALUES ($1, $2, NOW(), NOW())
-            ON CONFLICT (discord_id)
-            DO UPDATE SET
-                encrypted_api_key = EXCLUDED.encrypted_api_key,
-                updated_at = NOW()`,
-            [session.id, encryptedApiKey]
-        );
-
-        return res.status(200).json({
-            ok: true,
-            configured: true,
-            message: "API Key berhasil disimpan secara terenkripsi."
-        });
-    } catch (error) {
-        console.error(
-            "Roblox credential operation failed:",
-            error.message
-        );
-
-        return res.status(500).json({
-            ok: false,
-            message: "Terjadi kesalahan saat memproses API Key."
-        });
-    }
+    return res.status(200).json({
+      loggedIn: true,
+      user: {
+        id: user.id,
+        username: user.username
+      },
+      role,
+      unlimited: role === "OWNER" || role === "PREMIUM",
+      dailyLimit: role === "FREE" ? 2 : null
+    });
+  } catch {
+    return res.status(200).json({
+      loggedIn: false
+    });
+  }
 }

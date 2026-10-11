@@ -1264,110 +1264,851 @@
         showNotice($("prepareNotice"),
           "Silakan login Discord terlebih dahulu.", "error");
         return;
-      }
+<script type="module">
+  import { convertAudio } from "./audio-processor.js";
 
-      if (selectedSource !== "file" || !selectedFile) {
-        showNotice($("prepareNotice"),
-          "Pilih file audio terlebih dahulu.", "error");
-        return;
-      }
+  const $ = (id) => document.getElementById(id);
+  const MAX_AUDIO_SIZE = 5 * 1024 * 1024;
 
-      if (selectedFile.size > MAX_AUDIO_SIZE) {
-        showNotice($("prepareNotice"), "Ukuran audio maksimal 5 MB.", "error");
-        return;
-      }
+  let currentUser = null;
+  let selectedSource = "file";
+  let selectedFile = null;
+  let downloadUrl = null;
+  let isConverting = false;
+  let isSavingKey = false;
+  let isDeletingKey = false;
+  let keyConfigured = false;
 
-      const audioName = $("audioName").value.trim();
+  function showNotice(element, message, type = "info") {
+    element.textContent = message;
+    element.className = "notice show " + type;
+  }
 
-      isConverting = true;
-      updatePrepareButton();
+  function hideNotice(element) {
+    element.textContent = "";
+    element.className = "notice";
+  }
 
-      $("audioFile").disabled = true;
-      $("audioName").disabled = true;
-      $("creatorId").disabled = true;
-      $("creatorType").disabled = true;
-
-      hideNotice($("prepareNotice"));
-
-      try {
-        showNotice($("prepareNotice"),
-          "Memulai mesin konversi audio...", "info");
-
-        const result = await convertAudio(selectedFile, {
-          onProgress(message) {
-            showNotice($("prepareNotice"),
-              typeof message === "string" ? message : "Sedang memproses audio...",
-              "info");
-          }
-        });
-
-        if (!result?.blob || result.blob.size === 0) {
-          throw new Error("Hasil konversi kosong.");
-        }
-
-        if (downloadUrl) URL.revokeObjectURL(downloadUrl);
-        downloadUrl = URL.createObjectURL(result.blob);
-
-        const safeName = audioName
-          .replace(/[\\/:*?"<>|]/g, "_")
-          .slice(0, 100);
-
-        const downloadName = (safeName || "ZDC Audio") + ".mp3";
-        const downloadLink = document.createElement("a");
-
-        downloadLink.href = downloadUrl;
-        downloadLink.download = downloadName;
-        downloadLink.className = "btn btn-primary full";
-        downloadLink.style.marginTop = "12px";
-        downloadLink.textContent = "Unduh Hasil MP3";
-
-        const notice = $("prepareNotice");
-        notice.replaceChildren();
-
-        const message = document.createElement("p");
-        message.style.margin = "0";
-        message.style.whiteSpace = "pre-wrap";
-        message.textContent =
-          "KONVERSI BERHASIL!\n" +
-          "Nama hasil: " + downloadName + "\n" +
-          "Ukuran hasil: " +
-          (result.blob.size / (1024 * 1024)).toFixed(2) +
-          " MB\n\n" +
-          "Audio berhasil diproses di browser. " +
-          "Belum diunggah ke Roblox dan belum dicatat ke riwayat server.";
-
-        notice.className = "notice show success";
-        notice.append(message, downloadLink);
-
-      } catch (error) {
-        console.error("Konversi gagal:", error.message);
-
-        showNotice($("prepareNotice"),
-          "KONVERSI GAGAL:\n" + (error?.message || String(error)),
-          "error");
-      } finally {
-        isConverting = false;
-
-        $("audioFile").disabled = false;
-        $("audioName").disabled = false;
-        $("creatorId").disabled = false;
-        $("creatorType").disabled = false;
-
-        updatePrepareButton();
-      }
+  async function apiRequest(url, options = {}) {
+    const response = await fetch(url, {
+      credentials: "same-origin",
+      cache: "no-store",
+      ...options,
+      headers: { ...(options.headers || {}) }
     });
 
-    window.addEventListener("beforeunload", () => {
-      if (downloadUrl) URL.revokeObjectURL(downloadUrl);
-    });
+    let data;
 
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.get("login") === "success") {
-      window.history.replaceState({}, document.title, "/");
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error("Server mengembalikan respons yang tidak valid.");
     }
 
-    initialize();
-  </script>
+    if (!response.ok || data.ok === false) {
+      throw new Error(data.message || "Permintaan gagal.");
+    }
+
+    return data;
+  }
+
+  function setLoggedIn(isLoggedIn) {
+    $("loginScreen").classList.toggle("hidden", isLoggedIn);
+    $("dashboard").classList.toggle("hidden", !isLoggedIn);
+    $("logoutButton").classList.toggle("hidden", !isLoggedIn);
+  }
+
+  function normalizeRole(role) {
+    return String(role || "FREE").toUpperCase();
+  }
+
+  function renderUsage(data) {
+    $("userRole").textContent = normalizeRole(data.role);
+
+    if (data.unlimited || data.remaining === null) {
+      $("quotaValue").textContent = "∞";
+    } else if (
+      data.remaining !== undefined &&
+      data.remaining !== null &&
+      Number.isFinite(Number(data.remaining))
+    ) {
+      $("quotaValue").textContent =
+        `${data.remaining} / ${data.dailyLimit ?? 2}`;
+    } else {
+      $("quotaValue").textContent = "Memuat...";
+    }
+  }
+
+  async function loadUsage() {
+    try {
+      const data = await apiRequest("/api/usage");
+      renderUsage(data);
+
+      if (data.message) {
+        showNotice($("globalNotice"), data.message, "info");
+      } else {
+        hideNotice($("globalNotice"));
+      }
+    } catch (error) {
+      showNotice($("globalNotice"), error.message, "error");
+    }
+  }
+
+  function formatDate(value) {
+    if (!value) return "-";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+
+    return date.toLocaleString("id-ID", {
+      dateStyle: "short",
+      timeStyle: "short"
+    });
+  }
+
+  async function loadHistory() {
+    const list = $("historyList");
+    list.textContent = "Memuat riwayat...";
+
+    try {
+      const data = await apiRequest("/api/history");
+      list.replaceChildren();
+
+      if (!Array.isArray(data.history) || data.history.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "muted";
+        empty.textContent = "Belum ada riwayat konversi.";
+        list.appendChild(empty);
+        return;
+      }
+
+      for (const item of data.history) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "history-item";
+
+        const name = document.createElement("div");
+        name.className = "history-name";
+        name.textContent = item.audio_name || "Audio tanpa nama";
+
+        const meta = document.createElement("div");
+        meta.className = "history-meta";
+        meta.textContent =
+          "Dibuat: " + formatDate(item.created_at) +
+          " · Kedaluwarsa: " + formatDate(item.expires_at);
+
+        const status = document.createElement("div");
+        status.className = "status";
+        status.textContent = "Status: " + (item.status || "processing");
+
+        wrapper.append(name, meta, status);
+
+        if (item.roblox_asset_id) {
+          const asset = document.createElement("div");
+          asset.className = "history-meta";
+          asset.textContent = "ID aset Roblox: " + item.roblox_asset_id;
+          wrapper.appendChild(asset);
+        }
+
+        list.appendChild(wrapper);
+      }
+    } catch (error) {
+      list.replaceChildren();
+
+      const message = document.createElement("p");
+      message.className = "muted";
+      message.textContent = error.message;
+      list.appendChild(message);
+    }
+  }
+
+  // =========================================
+  // STATUS API KEY ROBLOX
+  // =========================================
+
+  function renderRobloxStatus(configured, message) {
+    keyConfigured = configured;
+
+    $("robloxStatusDot").classList.remove(
+      "connected",
+      "disconnected"
+    );
+
+    $("robloxStatusDot").classList.add(
+      configured ? "connected" : "disconnected"
+    );
+
+    $("robloxStatusText").textContent = message ||
+      (configured
+        ? "API Key sudah tersimpan secara terenkripsi."
+        : "API Key belum tersimpan.");
+
+    $("deleteRobloxKey").classList.toggle(
+      "hidden",
+      !configured
+    );
+  }
+
+  async function loadRobloxKeyStatus(showResult = false) {
+    $("checkRobloxKey").disabled = true;
+
+    try {
+      const data = await apiRequest("/api/roblox-key");
+
+      renderRobloxStatus(
+        data.configured === true,
+        data.configured
+          ? "API Key sudah tersimpan secara terenkripsi."
+          : "API Key belum tersimpan."
+      );
+
+      if (showResult) {
+        showNotice(
+          $("robloxKeyNotice"),
+          data.configured
+            ? "Pemeriksaan berhasil. API Key sudah tersimpan."
+            : "Pemeriksaan berhasil. Belum ada API Key yang tersimpan.",
+          data.configured ? "success" : "info"
+        );
+      }
+
+      return data.configured === true;
+    } catch (error) {
+      $("robloxStatusDot").classList.remove(
+        "connected",
+        "disconnected"
+      );
+
+      $("robloxStatusText").textContent =
+        "Status belum dapat diverifikasi.";
+
+      $("deleteRobloxKey").classList.add("hidden");
+
+      if (showResult) {
+        showNotice($("robloxKeyNotice"), error.message, "error");
+      }
+
+      return null;
+    } finally {
+      $("checkRobloxKey").disabled = false;
+    }
+  }
+
+  // =========================================
+  // SIMPAN API KEY
+  // =========================================
+
+  $("robloxKeyForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (isSavingKey || isDeletingKey) return;
+
+    const input = $("robloxApiKey");
+    const button = $("saveRobloxKey");
+    const apiKey = input.value;
+
+    if (!apiKey || apiKey.length < 10 || apiKey.length > 4096) {
+      showNotice(
+        $("robloxKeyNotice"),
+        "API Key tidak valid. Periksa kembali isinya.",
+        "error"
+      );
+      return;
+    }
+
+    if (apiKey.trim() !== apiKey || /[\r\n]/.test(apiKey)) {
+      showNotice(
+        $("robloxKeyNotice"),
+        "API Key mengandung spasi di awal/akhir atau karakter baris baru.",
+        "error"
+      );
+      return;
+    }
+
+    isSavingKey = true;
+
+    button.disabled = true;
+    $("checkRobloxKey").disabled = true;
+    $("deleteRobloxKey").disabled = true;
+    input.disabled = true;
+    $("toggleKeyVisibility").disabled = true;
+
+    button.textContent = "Menyimpan...";
+
+    showNotice(
+      $("robloxKeyNotice"),
+      "Mengirim API Key ke backend untuk dienkripsi dan disimpan...",
+      "info"
+    );
+
+    try {
+      const data = await apiRequest("/api/roblox-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey })
+      });
+
+      input.value = "";
+      input.type = "password";
+      $("toggleKeyVisibility").textContent = "Lihat";
+
+      renderRobloxStatus(
+        true,
+        "API Key sudah tersimpan secara terenkripsi."
+      );
+
+      showNotice(
+        $("robloxKeyNotice"),
+        data.message || "API Key berhasil disimpan.",
+        "success"
+      );
+    } catch (error) {
+      showNotice(
+        $("robloxKeyNotice"),
+        "Gagal menyimpan API Key: " + error.message,
+        "error"
+      );
+    } finally {
+      isSavingKey = false;
+
+      button.disabled = false;
+      $("checkRobloxKey").disabled = false;
+      $("deleteRobloxKey").disabled = false;
+      input.disabled = false;
+      $("toggleKeyVisibility").disabled = false;
+
+      button.textContent = "💾 Simpan API Key";
+    }
+  });
+
+  // =========================================
+  // HAPUS API KEY
+  // =========================================
+
+  $("deleteRobloxKey").addEventListener("click", async () => {
+    if (isDeletingKey || isSavingKey) return;
+
+    if (!keyConfigured) {
+      showNotice(
+        $("robloxKeyNotice"),
+        "Tidak ada API Key tersimpan yang bisa dihapus.",
+        "info"
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Yakin ingin menghapus API Key Roblox yang tersimpan?\n\n" +
+      "Tindakan ini menghapus kredensial dari penyimpanan ZDC. " +
+      "Aset Roblox yang sudah diunggah tidak ikut dihapus."
+    );
+
+    if (!confirmed) return;
+
+    isDeletingKey = true;
+
+    const button = $("deleteRobloxKey");
+
+    button.disabled = true;
+    $("saveRobloxKey").disabled = true;
+    $("checkRobloxKey").disabled = true;
+
+    button.textContent = "Menghapus...";
+
+    showNotice(
+      $("robloxKeyNotice"),
+      "Menghapus API Key dari database...",
+      "info"
+    );
+
+    try {
+      const data = await apiRequest("/api/roblox-key", {
+        method: "DELETE"
+      });
+
+      renderRobloxStatus(false, "API Key belum tersimpan.");
+
+      showNotice(
+        $("robloxKeyNotice"),
+        data.message || "API Key berhasil dihapus.",
+        "success"
+      );
+
+      $("robloxApiKey").value = "";
+      $("robloxApiKey").type = "password";
+      $("toggleKeyVisibility").textContent = "Lihat";
+    } catch (error) {
+      showNotice(
+        $("robloxKeyNotice"),
+        "Gagal menghapus API Key: " + error.message,
+        "error"
+      );
+
+      await loadRobloxKeyStatus(false);
+    } finally {
+      isDeletingKey = false;
+
+      button.textContent = "🗑️ Hapus API Key";
+      $("saveRobloxKey").disabled = false;
+      $("checkRobloxKey").disabled = false;
+      button.disabled = !keyConfigured;
+    }
+  });
+
+  $("toggleKeyVisibility").addEventListener("click", () => {
+    const input = $("robloxApiKey");
+
+    if (input.type === "password") {
+      input.type = "text";
+      $("toggleKeyVisibility").textContent = "Sembunyikan";
+    } else {
+      input.type = "password";
+      $("toggleKeyVisibility").textContent = "Lihat";
+    }
+  });
+
+  $("checkRobloxKey").addEventListener("click", async () => {
+    await loadRobloxKeyStatus(true);
+  });
+
+  // =========================================
+  // INISIALISASI DASHBOARD
+  // =========================================
+
+  async function initialize() {
+    try {
+      const data = await apiRequest("/api/me");
+
+      if (!data.loggedIn) {
+        currentUser = null;
+        setLoggedIn(false);
+        return;
+      }
+
+      currentUser = data.user || {};
+      setLoggedIn(true);
+
+      $("userName").textContent =
+        currentUser.username ||
+        currentUser.global_name ||
+        currentUser.id ||
+        "Pengguna Discord";
+
+      renderUsage({
+        role: data.role || "FREE",
+        unlimited: Boolean(data.unlimited),
+        dailyLimit: data.dailyLimit ?? 2,
+        remaining: data.unlimited ? null : undefined
+      });
+
+      await Promise.all([
+        loadUsage(),
+        loadHistory(),
+        loadRobloxKeyStatus(false)
+      ]);
+    } catch (error) {
+      console.error("Inisialisasi gagal:", error.message);
+
+      currentUser = null;
+      setLoggedIn(false);
+
+      showNotice(
+        $("loginNotice"),
+        "Tidak dapat memeriksa sesi login. Coba masuk kembali.",
+        "error"
+      );
+    }
+  }
+
+  // =========================================
+  // LOGIN DAN LOGOUT
+  // =========================================
+
+  $("loginButton").addEventListener("click", () => {
+    window.location.href = "/api/auth/discord";
+  });
+
+  $("logoutButton").addEventListener("click", async () => {
+    $("logoutButton").disabled = true;
+
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store"
+      });
+    } catch (error) {
+      console.error("Logout gagal:", error.message);
+    }
+
+    window.location.href = "/";
+  });
+
+  $("refreshQuota").addEventListener("click", loadUsage);
+  $("refreshHistory").addEventListener("click", loadHistory);
+
+  // =========================================
+  // PILIH SUMBER AUDIO
+  // =========================================
+
+  document.querySelectorAll(".tab").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedSource = button.dataset.source;
+
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.classList.toggle("active", tab === button);
+      });
+
+      $("fileSource").classList.toggle(
+        "hidden",
+        selectedSource !== "file"
+      );
+
+      $("youtubeSource").classList.toggle(
+        "hidden",
+        selectedSource !== "youtube"
+      );
+
+      $("soundcloudSource").classList.toggle(
+        "hidden",
+        selectedSource !== "soundcloud"
+      );
+
+      updatePrepareButton();
+      hideNotice($("prepareNotice"));
+    });
+  });
+
+  // =========================================
+  // VALIDASI FILE AUDIO
+  // =========================================
+
+  $("audioFile").addEventListener("change", function () {
+    hideNotice($("prepareNotice"));
+
+    const file = this.files?.[0];
+    selectedFile = null;
+
+    if (!file) {
+      $("fileName").textContent = "Belum ada file dipilih";
+      updatePrepareButton();
+      return;
+    }
+
+    if (file.size > MAX_AUDIO_SIZE) {
+      showNotice(
+        $("prepareNotice"),
+        "File terlalu besar! Maksimal 5 MB.",
+        "error"
+      );
+
+      this.value = "";
+      $("fileName").textContent = "Belum ada file dipilih";
+      updatePrepareButton();
+      return;
+    }
+
+    if (!/\.(mp3|wav|ogg|flac|m4a|aac|webm)$/i.test(file.name)) {
+      showNotice(
+        $("prepareNotice"),
+        "Format tidak didukung. Gunakan MP3, WAV, OGG, FLAC, M4A, AAC, atau WEBM.",
+        "error"
+      );
+
+      this.value = "";
+      $("fileName").textContent = "Belum ada file dipilih";
+      updatePrepareButton();
+      return;
+    }
+
+    selectedFile = file;
+
+    $("fileName").textContent =
+      file.name + " · " +
+      (file.size / (1024 * 1024)).toFixed(2) +
+      " MB";
+
+    updatePrepareButton();
+  });
+
+  $("audioName").addEventListener("input", updatePrepareButton);
+  $("creatorId").addEventListener("input", updatePrepareButton);
+  $("creatorType").addEventListener("change", updatePrepareButton);
+
+  function updatePrepareButton() {
+    const hasCreatorId =
+      /^\d+$/.test($("creatorId").value.trim());
+
+    const hasName =
+      $("audioName").value.trim().length > 0;
+
+    $("prepareButton").disabled =
+      isConverting ||
+      selectedSource !== "file" ||
+      !selectedFile ||
+      selectedFile.size > MAX_AUDIO_SIZE ||
+      !hasCreatorId ||
+      !hasName;
+  }
+
+  // =========================================
+  // KONVERSI + PENCATATAN SERVER
+  // =========================================
+
+  $("prepareButton").addEventListener("click", async () => {
+    if (isConverting) return;
+
+    if (!currentUser) {
+      showNotice(
+        $("prepareNotice"),
+        "Silakan login Discord terlebih dahulu.",
+        "error"
+      );
+      return;
+    }
+
+    if (selectedSource !== "file" || !selectedFile) {
+      showNotice(
+        $("prepareNotice"),
+        "Pilih file audio terlebih dahulu.",
+        "error"
+      );
+      return;
+    }
+
+    const file = selectedFile;
+    const audioName = $("audioName").value.trim();
+    const creatorId = $("creatorId").value.trim();
+
+    if (!audioName) {
+      showNotice(
+        $("prepareNotice"),
+        "Masukkan nama audio terlebih dahulu.",
+        "error"
+      );
+      return;
+    }
+
+    if (!/^\d+$/.test(creatorId)) {
+      showNotice(
+        $("prepareNotice"),
+        "ID akun atau grup Roblox harus berupa angka.",
+        "error"
+      );
+      return;
+    }
+
+    if (file.size > MAX_AUDIO_SIZE) {
+      showNotice(
+        $("prepareNotice"),
+        "Ukuran audio maksimal 5 MB.",
+        "error"
+      );
+      return;
+    }
+
+    isConverting = true;
+    updatePrepareButton();
+
+    $("audioFile").disabled = true;
+    $("audioName").disabled = true;
+    $("creatorId").disabled = true;
+    $("creatorType").disabled = true;
+
+    let conversionId = null;
+    let browserConversionSucceeded = false;
+
+    hideNotice($("prepareNotice"));
+
+    try {
+      // LANGKAH 1: CATAT PROSES DAN PERIKSA KUOTA DI SERVER.
+      showNotice(
+        $("prepareNotice"),
+        "Memeriksa kuota dan mencatat proses konversi...",
+        "info"
+      );
+
+      const started = await apiRequest("/api/conversion-start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audioName })
+      });
+
+      if (!started.conversionId) {
+        throw new Error(
+          "Server tidak mengembalikan ID konversi. Periksa endpoint conversion-start."
+        );
+      }
+
+      conversionId = String(started.conversionId);
+
+      // Perbarui kuota setelah server menerima permintaan.
+      await loadUsage();
+
+      // LANGKAH 2: PROSES AUDIO DI BROWSER.
+      showNotice(
+        $("prepareNotice"),
+        "Memulai mesin konversi audio...",
+        "info"
+      );
+
+      const result = await convertAudio(file, {
+        onProgress(message) {
+          showNotice(
+            $("prepareNotice"),
+            typeof message === "string"
+              ? message
+              : "Sedang memproses audio...",
+            "info"
+          );
+        }
+      });
+
+      if (!result?.blob || result.blob.size === 0) {
+        throw new Error("Hasil konversi kosong.");
+      }
+
+      // Tandai keberhasilan lokal SEBELUM memanggil endpoint selesai.
+      // Jika endpoint selesai gagal, hasil lokal tidak otomatis dianggap gagal.
+      browserConversionSucceeded = true;
+
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+        downloadUrl = null;
+      }
+
+      downloadUrl = URL.createObjectURL(result.blob);
+
+      const safeName = audioName
+        .replace(/[\\/:*?"<>|]/g, "_")
+        .slice(0, 100);
+
+      const downloadName = (safeName || "ZDC Audio") + ".mp3";
+      const downloadLink = document.createElement("a");
+
+      downloadLink.href = downloadUrl;
+      downloadLink.download = downloadName;
+      downloadLink.className = "btn btn-primary full";
+      downloadLink.style.marginTop = "12px";
+      downloadLink.textContent = "Unduh Hasil MP3";
+
+      // LANGKAH 3: CATAT HASIL DI SERVER.
+      let historyUpdated = false;
+      let finishWarning = "";
+
+      try {
+        await apiRequest("/api/conversion-finish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conversionId,
+            status: "completed"
+          })
+        });
+
+        historyUpdated = true;
+      } catch (error) {
+        // Jangan kirim status failed atau meminta pengembalian kuota
+        // hanya karena pencatatan keberhasilan mengalami masalah.
+        finishWarning =
+          "\nPeringatan: hasil audio berhasil dibuat, tetapi pembaruan " +
+          "riwayat server belum terkonfirmasi (" + error.message + ").";
+      }
+
+      const notice = $("prepareNotice");
+      notice.replaceChildren();
+
+      const message = document.createElement("p");
+      message.style.margin = "0";
+      message.style.whiteSpace = "pre-wrap";
+
+      message.textContent =
+        "KONVERSI BERHASIL!\n" +
+        "Nama hasil: " + downloadName + "\n" +
+        "Ukuran hasil: " +
+        (result.blob.size / (1024 * 1024)).toFixed(2) +
+        " MB\n\n" +
+        "Audio selesai diproses di browser.\n" +
+        (historyUpdated
+          ? "Status proses berhasil dicatat ke riwayat server.\n"
+          : "Status riwayat server belum terkonfirmasi.\n") +
+        "Audio BELUM diunggah ke Roblox." +
+        finishWarning;
+
+      notice.className =
+        "notice show " + (historyUpdated ? "success" : "info");
+
+      notice.append(message, downloadLink);
+
+    } catch (error) {
+      console.error("Konversi gagal:", error);
+
+      let extraMessage = "";
+
+      // Hanya proses yang benar-benar gagal saat konversi browser
+      // yang dikirim sebagai failed. Kegagalan update completed
+      // tidak masuk ke blok ini karena ditangani secara terpisah.
+      if (conversionId && !browserConversionSucceeded) {
+        try {
+          const finishData = await apiRequest(
+            "/api/conversion-finish",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                conversionId,
+                status: "failed"
+              })
+            }
+          );
+
+          extraMessage = finishData.quotaRefunded
+            ? "\nKuota telah dikembalikan oleh server."
+            : "\nStatus kegagalan dikirim ke server.";
+        } catch (finishError) {
+          extraMessage =
+            "\nServer belum mengonfirmasi pembaruan status atau pengembalian kuota: " +
+            finishError.message;
+        }
+      }
+
+      showNotice(
+        $("prepareNotice"),
+        "KONVERSI GAGAL:\n" +
+        (error?.message || String(error)) +
+        extraMessage,
+        "error"
+      );
+    } finally {
+      isConverting = false;
+
+      $("audioFile").disabled = false;
+      $("audioName").disabled = false;
+      $("creatorId").disabled = false;
+      $("creatorType").disabled = false;
+
+      updatePrepareButton();
+
+      // Muat ulang kuota dan riwayat, baik proses berhasil maupun gagal.
+      await Promise.all([
+        loadUsage(),
+        loadHistory()
+      ]);
+    }
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (downloadUrl) {
+      URL.revokeObjectURL(downloadUrl);
+    }
+  });
+
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("login") === "success") {
+    window.history.replaceState({}, document.title, "/");
+  }
+
+  initialize();
+</script>
 </body>
 </html>
